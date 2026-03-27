@@ -1,0 +1,84 @@
+/* ── Global Tokens ─────────────────────────────────── */
+:root {
+  --color-bg:      #E4EBE7;
+  --color-fg:      #1A2E25;
+  --color-accent:  #2E7D5B;
+  --color-muted:   #5C7A6C;
+  --color-border:  #C2D1C8;
+  --color-surface: rgba(255, 255, 255, 0.55);
+
+  --font-heading: 'DM Sans', 'Segoe UI', sans-serif;
+  --font-body:    'Inter', 'Segoe UI', sans-serif;
+  --font-mono:    'Space Mono', 'Consolas', monospace;
+
+  --space-xs:  0.25rem;
+  --space-sm:  0.5rem;
+  --space-md:  1rem;
+  --space-lg:  2rem;
+  --space-xl:  4rem;
+  --space-2xl: 6rem;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+}
+
+/* ── Reset ────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-fg);
+  background-color: #DAE3DD;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cg opacity='0.08' fill='none' stroke='%23708C7A' stroke-width='1.2'%3E%3Cpath d='M80 180 Q120 80 200 120 Q160 160 140 220 Q110 200 80 180Z'/%3E%3Cpath d='M140 220 Q120 180 80 180' stroke-width='0.6'/%3E%3Cpath d='M160 170 Q140 140 120 130' stroke-width='0.5'/%3E%3Cpath d='M170 190 Q150 170 130 165' stroke-width='0.5'/%3E%3Cpath d='M350 60 Q420 30 480 90 Q440 120 390 140 Q370 100 350 60Z'/%3E%3Cpath d='M390 140 Q380 100 350 60' stroke-width='0.6'/%3E%3Cpath d='M420 90 Q400 70 385 65' stroke-width='0.5'/%3E%3Cpath d='M430 110 Q410 95 395 92' stroke-width='0.5'/%3E%3Cpath d='M500 280 Q560 220 580 300 Q540 330 490 340 Q490 310 500 280Z'/%3E%3Cpath d='M490 340 Q495 310 500 280' stroke-width='0.6'/%3E%3Cpath d='M540 300 Q525 285 515 280' stroke-width='0.5'/%3E%3Cpath d='M60 420 Q20 360 80 320 Q100 360 110 400 Q85 410 60 420Z'/%3E%3Cpath d='M110 400 Q95 370 80 320' stroke-width='0.6'/%3E%3Cpath d='M320 380 Q380 340 420 400 Q380 420 340 430 Q330 400 320 380Z'/%3E%3Cpath d='M340 430 Q335 405 320 380' stroke-width='0.6'/%3E%3Cpath d='M380 390 Q365 375 355 370' stroke-width='0.5'/%3E%3Cpath d='M200 500 Q260 460 300 520 Q260 540 220 550 Q210 520 200 500Z'/%3E%3Cpath d='M220 550 Q215 525 200 500' stroke-width='0.6'/%3E%3Cpath d='M260 510 Q245 495 235 490' stroke-width='0.5'/%3E%3Cpath d='M500 480 Q540 440 560 500 Q530 520 500 530 Q500 505 500 480Z'/%3E%3Cpath d='M500 530 Q502 505 500 480' stroke-width='0.6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 600px 600px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ── Focus Ring ───────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Scroll-reveal animation base ─────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
