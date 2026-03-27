@@ -1,0 +1,179 @@
+// ============================================================================
+// SEVAFY — MVP Database Schema (DBML)
+// Refined for Hackathon: End-to-end NGO Scholarship & Donation Platform
+// ============================================================================
+
+Project Sevafy_MVP {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # SECURITY ADVISORY (PII Protection)
+    - Donor and Student PII (Personally Identifiable Information) must be encrypted at rest.
+    - Use PostgreSQL 'pgcrypto' extension for column-level encryption (AES-256) on sensitive fields.
+    - NGO details are considered public/business information and are not encrypted.
+  '''
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ────────────────────────────────────────────────────────────────────────────
+
+Enum user_role {
+  DONATOR
+  STUDENT
+  NGO_PERSONNEL
+}
+
+Enum application_status {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+Enum installment_phase {
+  NEW_ADMISSION           // 0
+  MID_TERM_INSTALLMENT    // 1
+  ACADEMIC_RENEWAL        // 2
+  COMPLETION_STATUS       // 3
+  STUDY_MATERIAL_SUPPORT  // 4
+  HOSTEL_OR_LIVING_EXPENSE // 5
+  EMERGENCY_SUPPORT       // 6
+  DROPOUT_RECOVERY_SUPPORT // 7
+  SKILL_OR_CERTIFICATION_SUPPORT // 8
+  DEVICE_OR_TECH_SUPPORT   // 9
+  PERFORMANCE_INCENTIVE   // 10
+  SPECIAL_CATEGORY_SUPPORT // 11
+}
+
+Enum ledger_direction {
+  INFLOW  // Donation coming into NGO
+  OUTFLOW // Scholarship / Expense going out
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// TABLES
+// ────────────────────────────────────────────────────────────────────────────
+
+Table users {
+  id              uuid         [pk, default: `uuid_generate_v4()`]
+  email           varchar(255) [not null, unique]
+  password        text         [not null, note: 'PBKDF2 / Argon2 HASHED']
+  full_name       varchar(255) [not null]
+  role            user_role    [not null]
+  wallet_address  varchar(66)  [note: 'Optional/Public', default: null]
+  created_at      timestamptz  [default: `now()`]
+}
+
+Table ngos {
+  id                   uuid         [pk, default: `uuid_generate_v4()`]
+  name                 varchar(255) [not null]
+  description          text
+  
+  // -- Public/Business Bank Details (Fine for public tables) --
+  bank_account_number  varchar(30)  [not null]
+  bank_ifsc_code       varchar(11)  [not null]
+  upi_id               varchar(100) [not null]
+  wallet_address       varchar(66)  [default: null]
+  
+  created_at           timestamptz  [default: `now()`]
+}
+
+Table ngo_personnel {
+  id           uuid [pk, default: `uuid_generate_v4()`]
+  user_id      uuid [not null, ref: > users.id]
+  ngo_id       uuid [not null, ref: > ngos.id]
+  designation  varchar(100)
+}
+
+Table student_profiles {
+  id                    uuid         [pk, default: `uuid_generate_v4()`]
+  user_id               uuid         [not null, unique, ref: - users.id]
+  institution_name      varchar(255)
+  course                varchar(255)
+  annual_family_income  decimal(14,2)
+  
+  // -- SECURE FIELDS --
+  bank_account_number   text         [note: 'ENCRYPTED (pgcrypto PG)']
+  bank_ifsc_code        text         [note: 'ENCRYPTED (pgcrypto PG)']
+  wallet_address        varchar(66)  [default: null]
+}
+
+Table donator_profiles {
+  id              uuid [pk, default: `uuid_generate_v4()`]
+  user_id         uuid [not null, unique, ref: - users.id]
+  
+  // -- SECURE FIELDS --
+  pan_number      text [note: 'ENCRYPTED (For 80G tax benefits)']
+  bank_account_number text [note: 'ENCRYPTED (Donor account details)']
+  bank_ifsc_code      text [note: 'ENCRYPTED']
+}
+
+Table scholarship_schemes {
+  id                  uuid          [pk, default: `uuid_generate_v4()`]
+  ngo_id              uuid          [not null, ref: > ngos.id]
+  title               varchar(255)  [not null]
+  description         text
+  amount_per_student  decimal(14,2) [not null]
+  contract_address    varchar(66)   [default: null]
+}
+
+Table scholarship_applications {
+  id              uuid               [pk, default: `uuid_generate_v4()`]
+  scheme_id       uuid               [not null, ref: > scholarship_schemes.id]
+  student_id      uuid               [not null, ref: > student_profiles.id]
+  status          application_status [default: 'SUBMITTED']
+  applied_at      timestamptz        [default: `now()`]
+  
+  indexes {
+    (scheme_id, student_id) [unique]
+  }
+}
+
+// 12-part automatic disbursement tracking
+Table scholarship_installments {
+  id              uuid              [pk, default: `uuid_generate_v4()`]
+  application_id  uuid              [not null, ref: > scholarship_applications.id]
+  phase           installment_phase [not null]
+  amount          decimal(14,2)     [not null]
+  is_disbursed    boolean           [default: false]
+  tx_hash         varchar(130)      [default: null]
+  disbursed_at    timestamptz
+}
+
+Table donations {
+  id              uuid          [pk, default: `uuid_generate_v4()`]
+  donator_id      uuid          [not null, ref: > donator_profiles.id]
+  ngo_id          uuid          [not null, ref: > ngos.id]
+  amount          decimal(16,2) [not null]
+  tx_hash         varchar(130)  [default: null]
+  donated_at      timestamptz   [default: `now()`]
+}
+
+// Track how one donation is split across many NGO schemes
+Table donation_scheme_usage {
+  id              uuid          [pk, default: `uuid_generate_v4()`]
+  donation_id     uuid          [not null, ref: > donations.id]
+  scheme_id       uuid          [not null, ref: > scholarship_schemes.id]
+  amount_used     decimal(14,2) [not null]
+}
+
+// PUBLIC GLOBAL LEDGER
+// For end-to-end transparency. Fetch all or filter by NGO.
+Table transparency_ledger {
+  id              uuid             [pk, default: `uuid_generate_v4()`]
+  ngo_id          uuid             [not null, ref: > ngos.id]
+  direction       ledger_direction [not null]
+  amount          decimal(16,2)    [not null]
+  description     text
+  tx_hash         varchar(130)     [default: null]
+  recorded_at     timestamptz      [default: `now()`]
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SECURITY FEATURES
+// ────────────────────────────────────────────────────────────────────────────
+// 1. NGO details are PUBLIC (business info).
+// 2. Donor & Student bank/PAN details are ENCRYPTED.
+// 3. Passwords are HASHED.
+// 4. Ledger is public (only shows amounts and NGO link, not private donor details).
+// ────────────────────────────────────────────────────────────────────────────
