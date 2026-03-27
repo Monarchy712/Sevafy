@@ -36,8 +36,8 @@ export default function Footer() {
   return (
     <footer className={styles.footer} aria-label="Site footer">
       <div className={styles.inner}>
-        <span className={styles.wordmark}>Antigravity</span>
-        <span className={styles.tagline}>Built on trust. Verified on-chain.</span>
+        <span className={styles.wordmark}>SEVAFY</span>
+        <span className={styles.tagline}>Built on trust. Verified digitally.</span>
         <nav className={styles.links} aria-label="Footer links">
           {FOOTER_LINKS.map((link) => (
             <a

@@ -3,10 +3,7 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 import styles from './MissionStrip.module.css';
 
 /**
- * MissionStrip — full-width accent strip with the platform's one-liner and
- * a small body text explaining the blockchain-backed trust model.
- *
- * @returns {React.JSX.Element}
+ * MissionStrip — full-width accent strip with the platform's one-liner.
  */
 export default function MissionStrip() {
   const ref = useScrollReveal();
@@ -15,12 +12,12 @@ export default function MissionStrip() {
     <section className={styles.strip} aria-label="Mission statement">
       <div className={`${styles.inner} reveal`} ref={ref}>
         <blockquote className={styles.quote}>
-          "One donation. Multiple bonds. Zero bias."
+          "One donation. Multiple lives changed. Zero bias."
         </blockquote>
         <p className={styles.body}>
-          Our smart contracts hold funds and control the payment gateway API. The
-          blockchain records every donor account, NGO account, amount, and
-          timestamp — immutably.
+          Every rupee is tracked, every NGO is verified, and every transaction
+          is transparent — from the moment you donate to the moment it reaches
+          someone who needs it.
         </p>
       </div>
     </section>

@@ -3,13 +3,13 @@
  */
 
 /** Student portal redirect URL */
-export const STUDENT_PORTAL_URL = 'https://student.antigravity.in';
+export const STUDENT_PORTAL_URL = 'https://student.sevafy.in';
 
 /** NGO portal redirect URL */
-export const NGO_PORTAL_URL = 'https://ngo.antigravity.in';
+export const NGO_PORTAL_URL = 'https://ngo.sevafy.in';
 
 /** Donor portal redirect URL */
-export const DONOR_PORTAL_URL = 'https://donor.antigravity.in';
+export const DONOR_PORTAL_URL = 'https://donor.sevafy.in';
 
 /**
  * Portal card metadata rendered in the PortalSection component.
@@ -29,7 +29,7 @@ export const PORTALS = [
     label: 'NGO',
     heading: "I'm an NGO",
     description:
-      'Partner with us. Submit your data, get vetted, and receive disbursements tracked on-chain.',
+      'Partner with us. Get vetted, receive secure funding, and maintain total transparency.',
     url: NGO_PORTAL_URL,
   },
   {
@@ -49,39 +49,39 @@ export const PORTALS = [
 export const FEATURES = [
   {
     id: 'blockchain-ledger',
-    title: 'Blockchain Ledger',
+    title: 'Secure Ledger',
     description:
-      'Donor account, NGO account, amount, and date logged immutably on-chain.',
+      'Every donation, recipient, and amount is logged immutably.',
   },
   {
     id: 'ml-scholarship-finder',
-    title: 'ML Scholarship Finder',
+    title: 'Smart Scholarship Finder',
     description:
-      'Authenticated scholarships sourced through a live ML pipeline — no fake listings.',
+      'Authentic scholarships sourced through live verification — no fake listings.',
   },
   {
     id: 'scam-ngo-detection',
     title: 'Scam NGO Detection',
     description:
-      'Historical scam data cross-referenced with Maharashtra NGO registry to filter untrustworthy organizations.',
+      'Historical data cross-referenced with registries to filter untrustworthy organizations.',
   },
   {
     id: 'fund-flow-normalization',
-    title: 'Fund Flow Normalization',
+    title: 'Smart Fund Distribution',
     description:
-      'ML recommendation engine redistributes donations to underfunded NGOs — popularity bias eliminated.',
+      'Our engine redistributes donations to underfunded NGOs, eliminating popularity bias.',
   },
   {
     id: 'transparent-disbursement',
-    title: 'Transparent Disbursement UI',
+    title: 'Transparent Dashboard',
     description:
-      'Real-time public dashboard showing every donation, bond, and disbursement.',
+      'Real-time public dashboard showing every verified donation and disbursement.',
   },
   {
     id: 'donor-testimony-chain',
-    title: 'Donor Testimony Chain',
+    title: 'Verified Testimonials',
     description:
-      'Verified donor testimonials recorded on-chain — no fake reviews.',
+      'Genuine donor testimonials and stories — no fabricated reviews.',
   },
 ];
 
@@ -90,7 +90,7 @@ export const FEATURES = [
  * @type {Array<{id: string, label: string, url: string}>}
  */
 export const FOOTER_LINKS = [
-  { id: 'github', label: 'GitHub', url: 'https://github.com/antigravity' },
-  { id: 'docs', label: 'Docs', url: 'https://docs.antigravity.in' },
-  { id: 'contact', label: 'Contact', url: 'mailto:hello@antigravity.in' },
+  { id: 'github', label: 'GitHub', url: 'https://github.com/sevafy' },
+  { id: 'docs', label: 'Docs', url: 'https://docs.sevafy.in' },
+  { id: 'contact', label: 'Contact', url: 'mailto:hello@sevafy.in' },
 ];

@@ -1,16 +1,66 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import HeroSection from './components/HeroSection';
 import PortalSection from './components/PortalSection';
 import MissionStrip from './components/MissionStrip';
 import FeaturesGrid from './components/FeaturesGrid';
 import Footer from './components/Footer';
 
+import { AuthProvider, AuthContext } from './contexts/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import BackgroundEffect from './components/BackgroundEffect';
+
+import './App.css';
+
 /**
- * App — root component composing all landing-page sections.
- *
- * @returns {React.JSX.Element}
+ * NavBar — floating glass navigation bar with SEVAFY brand and auth buttons.
  */
-export default function App() {
+function NavBar() {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  return (
+    <nav className="navbar">
+      <div className="navbar-inner">
+        <Link to="/" className="navbar-brand">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" stroke="var(--color-accent)" strokeWidth="2" />
+            <path d="M10 18C10 14 13 11 16 11C19 11 22 14 22 18" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="16" cy="20" r="2" fill="var(--color-accent)" />
+          </svg>
+          <span>SEVAFY</span>
+        </Link>
+
+        {user ? (
+          <div className="navbar-auth">
+            <span className="navbar-greeting">
+              {user.full_name}
+            </span>
+            <button className="btn btn-secondary" onClick={() => { logout(); navigate('/'); }}>
+              Log Out
+            </button>
+          </div>
+        ) : (
+          <div className="navbar-auth">
+            <Link to="/login" className="btn btn-ghost">Log In</Link>
+            <Link to="/register" className="btn btn-primary">
+              Get Started
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+/**
+ * LandingPage — the main marketing page.
+ */
+function LandingPage() {
   return (
     <>
       <main>
@@ -21,5 +71,24 @@ export default function App() {
       </main>
       <Footer />
     </>
+  );
+}
+
+/**
+ * App — root component.
+ */
+export default function App() {
+  return (
+    <AuthProvider>
+      <BackgroundEffect />
+      <Router>
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
