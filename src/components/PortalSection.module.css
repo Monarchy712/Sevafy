@@ -1,0 +1,122 @@
+/* ── Portal Section ────────────────────────────────── */
+
+.section {
+  padding: var(--space-md) var(--space-lg) var(--space-lg);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.card {
+  position: relative;
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.icon {
+  color: var(--color-accent);
+  margin-bottom: var(--space-xs);
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: var(--space-sm);
+  color: var(--color-fg);
+}
+
+.description {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+}
+
+.arrow {
+  position: absolute;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  font-size: 1.25rem;
+  color: var(--color-border);
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.card:hover .arrow {
+  color: var(--color-accent);
+  transform: translateX(4px);
+}
+
+/* ── How It Works CTA ─────────────────────────────── */
+
+.ctaWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #E4EBE7;
+  background: #1A2E25;
+  padding: 0.75rem 2rem;
+  border: 1px solid #1A2E25;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.cta:hover {
+  background: transparent;
+  color: var(--color-fg);
+}
+
+.ctaArrow {
+  font-size: 1rem;
+  transition: transform 0.25s ease;
+}
+
+.cta:hover .ctaArrow {
+  transform: translateY(3px);
+}
