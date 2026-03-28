@@ -62,6 +62,26 @@ export default function DonorDashboard() {
   const transRef = useRef(null);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [trackingResult, setTrackingResult] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+
+  const handleTrackDonation = async (donationId, totalAmount) => {
+    setTrackingLoading(true);
+    try {
+      const res = await api.get(`/blockchain/donation/${donationId}/students`);
+      setTrackingResult({
+        id: donationId,
+        totalAmount: totalAmount || 0,
+        data: res.data || []
+      });
+    } catch (err) {
+      console.error('Failed to track donation:', err);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  const closeTracking = () => setTrackingResult(null);
 
   // ---------- Fetch blockchain transactions ----------
   const fetchBlockchainData = async () => {
@@ -208,13 +228,6 @@ export default function DonorDashboard() {
 
   const hasDonated = donorStatus?.has_donated;
 
-  // Extract unique donation IDs from blockchain data (integers from contract)
-  const uniqueDonationIds = [...new Set(
-    blockchainTransactions
-      .filter(t => t.tx_type === 'DONOR_TO_NGO')
-      .map(t => t.donation_id)
-  )];
-
   return (
     <div className={styles.dashboardContainer}>
       {/* ── Dashboard Content ────────────────────── */}
@@ -285,15 +298,122 @@ export default function DonorDashboard() {
 
           {/* ── Thank You Overlay ───────────────────── */}
           {showThankYou && (
-            <div className={styles.thankYouOverlay}>
-              <div className={styles.thankYouContent}>
-                <div className={styles.thankYouHeart}>💖</div>
-                <h2 className={styles.thankYouTitle}>Thank You!</h2>
-                <p className={styles.thankYouText}>
-                  Your donation has been confirmed on the blockchain. 
-                  Every contribution makes a real difference.
-                </p>
-                <div className={styles.thankYouProgress}></div>
+            <div className={styles.overlay}>
+              <div className={styles.thankYouCard}>
+                <div className={styles.thankYouIcon}>❤️</div>
+                <h2 className={styles.thankYouHeading}>Thank You for Donating!</h2>
+                <p className={styles.thankYouText}>Your contribution has been successfully recorded on the blockchain.</p>
+              </div>
+            </div>
+          )}
+
+          {/* --- Impact Audit: Blockchain Transparency Modal --- */}
+          {trackingResult && (
+            <div className={styles.auditOverlay} onClick={closeTracking}>
+              <div className={styles.auditCard} onClick={e => e.stopPropagation()}>
+                <button className={styles.auditCloseBtn} onClick={closeTracking}>&times;</button>
+                
+                {/* ── Progress Hero Area ───────────────── */}
+                <div className={styles.auditHero}>
+                  <div className={styles.auditHeaderRow}>
+                    <div className={styles.auditBadge}>Donation Audit #{trackingResult.id}</div>
+                    <div className={styles.auditVerifiedBadge}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M20 6L9 17L4 12"/>
+                      </svg>
+                      Verified on Chain
+                    </div>
+                  </div>
+                  
+                  <h3 className={styles.auditTitle}>Impact Realization</h3>
+                  
+                  {(() => {
+                    const totalD = trackingResult.data.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+                    const totalA = trackingResult.totalAmount;
+                    const percent = totalA > 0 ? (totalD / totalA) * 100 : 0;
+                    
+                    // Priority: RED(0%), YELLOW(partial), GREEN(100%)
+                    const statusClass = percent === 0 ? styles.statusRed : (percent < 100 ? styles.statusYellow : styles.statusGreen);
+                    const statusLabel = percent === 0 ? 'Awaiting' : (percent < 100 ? 'In Progress' : 'Completed');
+                    
+                    return (
+                      <div className={styles.progressSection}>
+                        <div className={styles.progressData}>
+                          <span className={styles.progressLabel}>Blockchain Verified Disbursement</span>
+                          <span className={`${styles.progressPercent} ${statusClass}`}>{Math.round(percent)}%</span>
+                        </div>
+                        <div className={styles.progressBarWrapper}>
+                          <div 
+                            className={`${styles.progressBar}`}
+                            style={{ 
+                              width: `${percent}%`,
+                              backgroundColor: percent === 0 ? '#ef4444' : (percent < 100 ? '#f59e0b' : '#22c55e'),
+                              boxShadow: `0 0 10px ${percent === 0 ? 'rgba(239, 68, 68, 0.3)' : (percent < 100 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(34, 197, 94, 0.3)')}`
+                            }}
+                          ></div>
+                        </div>
+                        <div className={styles.progressMeta}>
+                          <span className={styles.amountSummary}>
+                            <strong>₹{totalD.toLocaleString('en-IN')}</strong> / ₹{totalA.toLocaleString('en-IN')} Traceable
+                          </span>
+                          <span className={`${styles.auditPill} ${statusClass}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* ── Blockchain Disbursement Timeline ── */}
+                <div className={styles.auditTimeline}>
+                  <div className={styles.timelineLabel}>Blockchain Audit Trail</div>
+                  
+                  {trackingResult.data.length > 0 ? (
+                    <div className={styles.timelineList}>
+                      {trackingResult.data.map((b, i) => (
+                        <div key={i} className={styles.timelineItem}>
+                          <div className={styles.timelineMarker}>
+                            <div className={styles.markerInner}></div>
+                          </div>
+                          <div className={styles.timelineContent}>
+                            <div className={styles.tRow}>
+                              <span className={styles.tStudent}>Beneficiary Student #{b.receiver_uid}</span>
+                              <span className={styles.tAmount}>₹{(b.amount || 0).toLocaleString('en-IN')}</span>
+                            </div>
+                            <div className={styles.tPurpose}>{PURPOSE_MAP[b.purpose] || `Audit Ref. ${b.purpose}`}</div>
+                            <div className={styles.tDate}>
+                              {new Date(b.timestamp * 1000).toLocaleString('en-IN', {
+                                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.auditEmpty}>
+                      <div className={styles.emptyVault}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="2" y="5" width="20" height="14" rx="2" strokeOpacity="0.3"/>
+                          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" strokeOpacity="0.4"/>
+                          <path d="M22 12h-4M2 12h4" strokeOpacity="0.3"/>
+                        </svg>
+                      </div>
+                      <h4>Funds Secured in Vault</h4>
+                      <p>Your contribution is immutably locked on the SEVAFY contract. Once the NGO allocates these funds to specific students, the audit trail will populate here.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.auditFooter}>
+                  <div className={styles.guardianShield}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
+                    </svg>
+                    Immutability Guaranteed by Blockchain
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -315,8 +435,13 @@ export default function DonorDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {blockchainTransactions.map((tx, idx) => (
-                    <tr key={idx} className={styles.txRow}>
+                  {[...blockchainTransactions]
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                    .map((tx, idx) => (
+                      <tr 
+                        key={idx} 
+                        className={`${styles.txRow} ${tx.amount > 4999 ? styles.highValueRow : ''}`}
+                      >
                       <td>
                         <span className={styles.donationBadge}>#{tx.donation_id}</span>
                       </td>
@@ -345,9 +470,20 @@ export default function DonorDashboard() {
                       <td className={styles.timeCell}>
                         {formatTimestamp(tx.timestamp)}
                       </td>
-                      <td className={styles.actionCell}>
-                        <button className={styles.trackBtn}>
-                          Track Donation
+                      <td>
+                        <button 
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => handleTrackDonation(tx.donation_id, tx.amount)}
+                          disabled={trackingLoading}
+                        >
+                          {trackingLoading && trackingResult?.id === tx.donation_id ? '...' : (
+                            <>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                              </svg>
+                              Track
+                            </>
+                          )}
                         </button>
                       </td>
                     </tr>

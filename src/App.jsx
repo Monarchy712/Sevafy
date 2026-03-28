@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
 import HeroSection from './components/HeroSection';
 import PortalSection from './components/PortalSection';
 import MissionStrip from './components/MissionStrip';
@@ -30,6 +30,7 @@ function NavBar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
+        {/* Left: Brand */}
         <Link to="/" className="navbar-brand">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
             <circle cx="16" cy="16" r="14" stroke="var(--color-accent)" strokeWidth="2" />
@@ -39,31 +40,36 @@ function NavBar() {
           <span>SEVAFY</span>
         </Link>
 
-        {user ? (
-          <div className="navbar-auth">
-            <Link to="/recommendations" className="navbar-link" style={{marginRight: '1rem'}}>AI Match</Link>
-            <Link to="/ledger" className="navbar-link" style={{marginRight: '1rem'}}>Ledger</Link>
-            <Link to="/dashboard" className="btn btn-ghost">Dashboard</Link>
-            <span className="navbar-greeting">
-              {user.full_name}
-            </span>
-            <button className="btn btn-secondary" onClick={() => { logout(); navigate('/'); }}>
-              Log Out
-            </button>
-          </div>
-        ) : (
-          <div className="navbar-auth">
-            <Link to="/recommendations" className="navbar-link">AI Match</Link>
-            <Link to="/ledger" className="navbar-link" style={{marginRight: '0.75rem'}}>Ledger</Link>
-            <Link to="/login" className="btn btn-ghost">Log In</Link>
-            <Link to="/register" className="btn btn-primary">
-              Get Started
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-          </div>
-        )}
+        {/* Center: Main Navigation */}
+        <div className="navbar-center">
+          <NavLink to="/recommendations" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>AI Match</NavLink>
+          <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Dashboard</NavLink>
+          <NavLink to="/ledger" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Ledger</NavLink>
+        </div>
+
+        {/* Right: Auth/Greeting */}
+        <div className="navbar-auth">
+          {user ? (
+            <>
+              <span className="navbar-greeting">
+                {user.full_name.split(' ')[0]}
+              </span>
+              <button className="btn btn-secondary" onClick={() => { logout(); navigate('/'); }}>
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-ghost">Log In</Link>
+              <Link to="/register" className="btn btn-primary">
+                Get Started
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

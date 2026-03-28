@@ -32,6 +32,7 @@ function formatTimestamp(ts) {
 
 export default function TransparentLedger() {
   const [transactions, setTransactions] = useState([]);
+  const [ngos, setNgos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -40,18 +41,22 @@ export default function TransparentLedger() {
 
   // Fetch initial data from blockchain via backend
   useEffect(() => {
-    const fetchLedger = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/blockchain/ledger');
-        setTransactions(res.data.transactions || []);
+        const [ledgerRes, ngosRes] = await Promise.all([
+          api.get('/blockchain/ledger'),
+          api.get('/ngos')
+        ]);
+        setTransactions(ledgerRes.data.transactions || []);
+        setNgos(ngosRes.data || []);
       } catch (err) {
-        console.error('Failed to load ledger:', err);
+        console.error('Failed to load ledger data:', err);
         setError('Failed to load ledger data');
       } finally {
         setLoading(false);
       }
     };
-    fetchLedger();
+    fetchData();
   }, []);
 
   // WebSocket connection for real-time updates
@@ -62,7 +67,14 @@ export default function TransparentLedger() {
       if (!alive) return;
 
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/ledger`;
+      // Robust detection: if we're on Vite port (5173), target the backend port (8000)
+      let host = window.location.host;
+      if (host.includes('5173')) {
+        host = host.replace('5173', '8000');
+      }
+      
+      const wsUrl = `${protocol}//${host}/ws/ledger`;
+      console.log('[Ledger] Connecting to WS:', wsUrl);
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -88,6 +100,14 @@ export default function TransparentLedger() {
 
           if (payload.type === 'new_transaction' || payload.type === 'blockchain_event') {
             setTransactions(prev => {
+              // Check for duplicate donation_id and timestamp
+              const exists = prev.some(t => 
+                t.donation_id === payload.data.donation_id && 
+                t.timestamp === payload.data.timestamp &&
+                t.amount === payload.data.amount
+              );
+              if (exists) return prev;
+
               const updated = [payload.data, ...prev];
               // Keep max 50
               return updated.slice(0, 50);
@@ -183,10 +203,9 @@ export default function TransparentLedger() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Type</th>
               <th>Donation #</th>
               <th>Sender UID</th>
-              <th>Receiver UID</th>
+              <th>NGO</th>
               <th>Amount</th>
               <th>Purpose</th>
               <th>Time</th>
@@ -194,20 +213,21 @@ export default function TransparentLedger() {
           </thead>
           <tbody>
             {transactions.map((tx, idx) => (
-              <tr key={idx} className={styles.txRow} data-type={tx.tx_type}>
-                <td>
-                  <span className={styles.typeBadge} data-type={tx.tx_type}>
-                    {tx.tx_type === 'DONOR_TO_NGO' ? '💰 Donation' : '🎓 Transfer'}
-                  </span>
-                </td>
+              <tr 
+                key={idx} 
+                className={`${styles.txRow} ${tx.amount > 4999 ? styles.highValueRow : ''}`} 
+                data-type={tx.tx_type}
+              >
                 <td className={styles.donationId}>#{tx.donation_id}</td>
                 <td className={styles.uidCell}>{tx.sender_uid}</td>
-                <td className={styles.uidCell}>{tx.receiver_uid}</td>
+                <td className={styles.uidCell}>
+                  {ngos.find(n => n.blockchain_uid === tx.receiver_uid)?.name || tx.receiver_uid}
+                </td>
                 <td className={styles.amount}>
                   ₹{(tx.amount || 0).toLocaleString('en-IN')}
                 </td>
                 <td className={styles.purpose}>
-                  {tx.purpose === 100 ? '—' : (PURPOSE_MAP[tx.purpose] || `Phase ${tx.purpose}`)}
+                  {tx.purpose === 100 ? 'Donation' : (PURPOSE_MAP[tx.purpose] || `Phase ${tx.purpose}`)}
                 </td>
                 <td className={styles.time}>{formatTimestamp(tx.timestamp)}</td>
               </tr>
