@@ -17,8 +17,9 @@ class User(Base):
 
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    password = Column(Text, nullable=False)
+    password = Column(Text, nullable=True) # Nullable for Google-only users
     full_name = Column(String(255), nullable=False)
+    google_id = Column(String(255), unique=True, nullable=True, index=True)
     role = Column(SQLEnum(UserRole), nullable=False)
     wallet_address = Column(String(66), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

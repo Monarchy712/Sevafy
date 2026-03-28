@@ -5,6 +5,9 @@ export const AuthContext = createContext({
   user: null,
   login: async () => {},
   register: async () => {},
+  loginWithGoogle: async () => {},
+  loginWithGoogleCustom: async () => {},
+  completeGoogleProfile: async () => {},
   logout: () => {},
   loading: true,
 });
@@ -31,13 +34,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    // Expected to be FormData per OAuth2 spec for access token endpoint
-    const formData = new URLSearchParams();
-    formData.append('username', email); // OAuth2 expects 'username' for email
-    formData.append('password', password);
-
-    const { data } = await api.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    // Backend expects schemas.UserLogin JSON body
+    const { data } = await api.post('/auth/login', {
+      email,
+      password,
     });
     localStorage.setItem('token', data.access_token);
     
@@ -53,13 +53,49 @@ export function AuthProvider({ children }) {
     await login(userData.email, userData.password);
   };
 
+  const loginWithGoogle = async (credential) => {
+    const { data } = await api.post('/auth/google', { credential });
+    
+    if (data.require_role) {
+      // Return the partial profile so the frontend can redirect to role selection
+      return { require_role: true, profile: data };
+    } else {
+      localStorage.setItem('token', data.access_token);
+      const profileRes = await api.get('/users/me');
+      setUser(profileRes.data);
+      return { require_role: false };
+    }
+  };
+
+  const loginWithGoogleCustom = async (access_token) => {
+    const { data } = await api.post('/auth/google/custom', { access_token });
+    
+    if (data.require_role) {
+      return { require_role: true, profile: data };
+    } else {
+      localStorage.setItem('token', data.access_token);
+      const profileRes = await api.get('/users/me');
+      setUser(profileRes.data);
+      return { require_role: false };
+    }
+  };
+
+  const completeGoogleProfile = async (profileData) => {
+    const { data } = await api.post('/auth/google/complete', profileData);
+    localStorage.setItem('token', data.access_token);
+    const profileRes = await api.get('/users/me');
+    setUser(profileRes.data);
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, login, register, loginWithGoogle, loginWithGoogleCustom, completeGoogleProfile, logout, loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

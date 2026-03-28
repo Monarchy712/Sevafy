@@ -7,9 +7,13 @@ import FeaturesGrid from './components/FeaturesGrid';
 import Footer from './components/Footer';
 
 import { AuthProvider, AuthContext } from './contexts/AuthContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import SelectRole from './pages/SelectRole';
 import BackgroundEffect from './components/BackgroundEffect';
+
+const GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
 import './App.css';
 
@@ -79,16 +83,19 @@ function LandingPage() {
  */
 export default function App() {
   return (
-    <AuthProvider>
-      <BackgroundEffect />
-      <Router>
-        <NavBar />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <BackgroundEffect />
+        <Router>
+          <NavBar />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/select-role" element={<SelectRole />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }

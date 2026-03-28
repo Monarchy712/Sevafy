@@ -5,6 +5,11 @@ from datetime import timedelta
 
 from . import models, schemas, auth
 from .database import engine, get_db
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+# Google Client ID from user
+GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com"
 
 # Create all database tables based on our models
 models.Base.metadata.create_all(bind=engine)
@@ -74,6 +79,117 @@ def login_for_access_token(user_credentials: schemas.UserLogin, db: Session = De
         data={"sub": user.email, "role": user.role.value}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/api/auth/google")
+def google_auth(request: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
+    try:
+        # Verify the ID token using the official Google library
+        id_info = id_token.verify_oauth2_token(request.credential, requests.Request(), GOOGLE_CLIENT_ID)
+        
+        email = id_info['email']
+        google_id = id_info['sub']
+        full_name = id_info.get('name', 'Google User')
+        
+        # Check if user exists by email or google_id
+        user = db.query(models.User).filter(
+            (models.User.email == email) | (models.User.google_id == google_id)
+        ).first()
+        
+        if user:
+            # Sync google_id if it somehow wasn't set but email matches
+            if not user.google_id:
+                user.google_id = google_id
+                db.commit()
+                
+            access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = auth.create_access_token(
+                data={"sub": user.email, "role": user.role.value}, expires_delta=access_token_expires
+            )
+            return {"access_token": access_token, "token_type": "bearer", "require_role": False}
+        else:
+            # Signal the frontend to ask for a role
+            return {
+                "require_role": True, 
+                "email": email, 
+                "full_name": full_name, 
+                "google_id": google_id
+            }
+            
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Google token")
+
+@app.post("/api/auth/google/complete")
+def google_complete(request: schemas.GoogleCompleteRequest, db: Session = Depends(get_db)):
+    # Verify user doesn't exist yet before final creation
+    existing_user = db.query(models.User).filter(models.User.email == request.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists with this email")
+
+    # Create the user without a password (Google logins)
+    new_user = models.User(
+        email=request.email,
+        full_name=request.full_name,
+        google_id=request.google_id,
+        role=request.role
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    # Initialize associated profile depending on role
+    if request.role == models.UserRole.STUDENT:
+        db.add(models.StudentProfile(user_id=new_user.id))
+    elif request.role == models.UserRole.DONATOR:
+        db.add(models.DonatorProfile(user_id=new_user.id))
+        
+    db.commit()
+    
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": new_user.email, "role": new_user.role.value}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+import requests as external_requests
+
+@app.post("/api/auth/google/custom")
+def google_custom_auth(request: schemas.GoogleCustomRequest, db: Session = Depends(get_db)):
+    # Verify access_token by calling Google's UserInfo API
+    resp = external_requests.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers={"Authorization": f"Bearer {request.access_token}"}
+    )
+    
+    if resp.status_code != 200:
+        raise HTTPException(status_code=400, detail="Invalid Google access token")
+    
+    user_info = resp.json()
+    email = user_info['email']
+    google_id = user_info['sub']
+    full_name = user_info.get('name', 'Google User')
+    
+    # Same logic as standard google login
+    user = db.query(models.User).filter(
+        (models.User.email == email) | (models.User.google_id == google_id)
+    ).first()
+    
+    if user:
+        if not user.google_id:
+            user.google_id = google_id
+            db.commit()
+            
+        access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_token = auth.create_access_token(
+            data={"sub": user.email, "role": user.role.value}, expires_delta=access_token_expires
+        )
+        return {"access_token": jwt_token, "token_type": "bearer", "require_role": False}
+    else:
+        return {
+            "require_role": True, 
+            "email": email, 
+            "full_name": full_name, 
+            "google_id": google_id
+        }
 
 @app.get("/api/users/me", response_model=schemas.UserResponse)
 def read_users_me(current_user: models.User = Depends(auth.get_current_user)):

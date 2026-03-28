@@ -31,3 +31,16 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+# New Google Auth Schemas
+class GoogleAuthRequest(BaseModel):
+    credential: str
+
+class GoogleCompleteRequest(BaseModel):
+    email: EmailStr
+    full_name: str
+    google_id: str
+    role: UserRole
+
+class GoogleCustomRequest(BaseModel):
+    access_token: str

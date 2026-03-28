@@ -8,17 +8,11 @@ SQLALCHEMY_DATABASE_URL = os.getenv(
     "postgresql+psycopg://neondb_owner:npg_VNZJb9OBw5eA@ep-late-voice-a1bmdqzm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 )
 
-# Fallback gracefully to SQLite if the PostgreSQL connection is refused
-try:
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
-    # Test connection
-    with engine.connect() as conn:
-        pass
-except Exception:
-    import logging
-    logging.warning("PostgreSQL connection failed. Falling back to SQLite for MVP deployment.")
-    engine = create_engine("sqlite:///./sevafy_mvp.db", connect_args={"check_same_thread": False})
+# Create the SQLAlchemy engine for PostgreSQL
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
+# Ensure the database tables are created (Metadata handles this for us during startup elsewhere, 
+# but it is common practice to initialize the engine here)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for our SQLAlchemy models
