@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import styles from './TransparentLedger.module.css';
 import api from '../api';
+import { AuthContext } from '../contexts/AuthContext';
 
 // Purpose mapping from contract
 const PURPOSE_MAP = {
@@ -31,6 +33,10 @@ function formatTimestamp(ts) {
 }
 
 export default function TransparentLedger() {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const isStudentPath = window.location.pathname === '/student-ledger';
+  const isStudent = user?.role === 'STUDENT' || isStudentPath;
   const [transactions, setTransactions] = useState([]);
   const [ngos, setNgos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +78,7 @@ export default function TransparentLedger() {
       if (host.includes('5173')) {
         host = host.replace('5173', '8000');
       }
-      
+
       const wsUrl = `${protocol}//${host}/ws/ledger`;
       console.log('[Ledger] Connecting to WS:', wsUrl);
 
@@ -101,8 +107,8 @@ export default function TransparentLedger() {
           if (payload.type === 'new_transaction' || payload.type === 'blockchain_event') {
             setTransactions(prev => {
               // Check for duplicate donation_id and timestamp
-              const exists = prev.some(t => 
-                t.donation_id === payload.data.donation_id && 
+              const exists = prev.some(t =>
+                t.donation_id === payload.data.donation_id &&
                 t.timestamp === payload.data.timestamp &&
                 t.amount === payload.data.amount
               );
@@ -147,6 +153,70 @@ export default function TransparentLedger() {
         <div className={styles.loading}>
           <span className={styles.spinner}></span>
           Loading Transparent Ledger...
+        </div>
+      </div>
+    );
+  }
+
+  if (isStudent) {
+    return (
+      <div className={styles.containerBasic}>
+        <header className={styles.simpleHeader}>
+          <div className={styles.brandGroup}>
+            <span className={styles.brandName}>SEVAFY</span>
+            <nav className={styles.simpleNav}>
+              <NavLink to="/student-dashboard" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>Portal</NavLink>
+              <NavLink to="/student-ledger" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>Ledger</NavLink>
+              {user ? (
+                <button className={styles.navLinkBtn} onClick={() => { logout(); navigate('/student-dashboard'); }}>Log Out</button>
+              ) : (
+                <Link to="/student-login" className={styles.navItem}>Log In</Link>
+              )}
+            </nav>
+          </div>
+        </header>
+
+        <div className={styles.headerBasic}>
+          <h1 className={styles.titleBasic}>Transaction Ledger</h1>
+          <p className={styles.subtitleBasic}>Historical record of verified transfers</p>
+        </div>
+
+        {error && <div className={styles.errorBanner}>{error}</div>}
+
+        <div className={styles.tableWrapperBasic}>
+          <table className={styles.tableBasic}>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Amount</th>
+                <th>Purpose</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map((tx, idx) => (
+                <tr key={idx}>
+                  <td>#{tx.donation_id}</td>
+                  <td>{tx.sender_uid}</td>
+                  <td>
+                    {ngos.find(n => n.blockchain_uid === tx.receiver_uid)?.name || tx.receiver_uid}
+                  </td>
+                  <td>₹{(tx.amount || 0).toLocaleString('en-IN')}</td>
+                  <td>
+                    {tx.purpose === 100 ? 'Donation' : (PURPOSE_MAP[tx.purpose] || `Phase ${tx.purpose}`)}
+                  </td>
+                  <td>{formatTimestamp(tx.timestamp)}</td>
+                </tr>
+              ))}
+              {transactions.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     );
@@ -213,9 +283,9 @@ export default function TransparentLedger() {
           </thead>
           <tbody>
             {transactions.map((tx, idx) => (
-              <tr 
-                key={idx} 
-                className={`${styles.txRow} ${tx.amount > 4999 ? styles.highValueRow : ''}`} 
+              <tr
+                key={idx}
+                className={`${styles.txRow} ${tx.amount > 4999 ? styles.highValueRow : ''}`}
                 data-type={tx.tx_type}
               >
                 <td className={styles.donationId}>#{tx.donation_id}</td>

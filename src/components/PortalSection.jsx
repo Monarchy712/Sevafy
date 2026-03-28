@@ -43,7 +43,7 @@ const ICONS = { student: StudentIcon, ngo: NgoIcon, donor: DonorIcon };
 
 const ROLE_TO_DASHBOARD = {
   DONATOR: { label: 'Donor', path: '/dashboard', iconKey: 'donor' },
-  STUDENT: { label: 'Student', path: '/dashboard', iconKey: 'student' },
+  STUDENT: { label: 'Student', path: '/student-dashboard', iconKey: 'student' },
   NGO_PERSONNEL: { label: 'Partner (NGO)', path: '/dashboard', iconKey: 'ngo' },
 };
 

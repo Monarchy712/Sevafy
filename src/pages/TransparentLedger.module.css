@@ -28,7 +28,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Header */
@@ -89,8 +91,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .errorBanner {
@@ -214,7 +223,8 @@
 }
 
 .highValueRow td {
-  color: #166534 !important; /* Deep Forest Green for contrast */
+  color: #166534 !important;
+  /* Deep Forest Green for contrast */
   font-weight: 500;
 }
 
@@ -277,4 +287,124 @@
   .table {
     min-width: 700px;
   }
+}
+
+/* ═════════════════════════════════════════════
+   Basic Ledger Styles (Student Role)
+   ═════════════════════════════════════════════ */
+
+.containerBasic {
+  max-width: 1000px;
+  margin: 2rem auto 2rem; /* Reduced margin since global nav is gone */
+  padding: 1rem;
+  background: white;
+  color: #333;
+}
+
+.simpleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #333;
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brandName {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.simpleNav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.navItem {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+  padding: 4px 8px;
+}
+
+.navLinkBtn {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.navLinkBtn:hover {
+  text-decoration: underline;
+}
+
+.active {
+  background-color: #333;
+  color: #FFF;
+}
+
+.headerBasic {
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.75rem;
+}
+
+.titleBasic {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.subtitleBasic {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.tableWrapperBasic {
+  overflow-x: auto;
+}
+
+.tableBasic {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+}
+
+.tableBasic th {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  color: #555;
+}
+
+.tableBasic td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  color: #444;
+}
+
+.tableBasic tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.tableBasic tr:hover {
+  background: #f1f1f1;
 }

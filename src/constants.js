@@ -3,7 +3,7 @@
  */
 
 /** Student portal redirect URL */
-export const STUDENT_PORTAL_URL = 'https://student.sevafy.in';
+export const STUDENT_PORTAL_URL = '/login';
 
 /** NGO portal redirect URL */
 export const NGO_PORTAL_URL = 'https://ngo.sevafy.in';

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import HeroSection from './components/HeroSection';
 import PortalSection from './components/PortalSection';
 import MissionStrip from './components/MissionStrip';
@@ -15,6 +15,9 @@ import DonorDashboard from './pages/DonorDashboard';
 import BackgroundEffect from './components/BackgroundEffect';
 import Recommendations from './pages/Recommendations';
 import TransparentLedger from './pages/TransparentLedger';
+import StudentDashboard from './pages/StudentDashboard';
+import StudentLogin from './pages/StudentLogin';
+import StudentRegister from './pages/StudentRegister';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
@@ -42,8 +45,15 @@ function NavBar() {
 
         {/* Center: Main Navigation */}
         <div className="navbar-center">
-          <NavLink to="/recommendations" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>AI Match</NavLink>
-          <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Dashboard</NavLink>
+          {user?.role !== 'STUDENT' && (
+            <NavLink to="/recommendations" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>AI Match</NavLink>
+          )}
+          <NavLink 
+            to={user?.role === 'STUDENT' ? '/student-dashboard' : '/dashboard'} 
+            className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
+          >
+            Dashboard
+          </NavLink>
           <NavLink to="/ledger" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Ledger</NavLink>
         </div>
 
@@ -93,24 +103,44 @@ function LandingPage() {
 }
 
 /**
+ * AppContent — handles conditional NavBar based on AuthContext.
+ */
+function AppContent() {
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+  const isStudentPath = location.pathname.startsWith('/student-');
+
+  return (
+    <>
+      <BackgroundEffect />
+      {/* Hide global NavBar on student-specific routes */}
+      {!isStudentPath && user?.role !== 'STUDENT' && <NavBar />}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/student-login" element={<StudentLogin />} />
+        <Route path="/student-register" element={<StudentRegister />} />
+        <Route path="/select-role" element={<SelectRole />} />
+        <Route path="/recommendations" element={<Recommendations />} />
+        <Route path="/dashboard" element={<DonorDashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/student-ledger" element={<TransparentLedger />} />
+        <Route path="/ledger" element={<TransparentLedger />} />
+      </Routes>
+    </>
+  );
+}
+
+/**
  * App — root component.
  */
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
-        <BackgroundEffect />
         <Router>
-          <NavBar />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/select-role" element={<SelectRole />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/dashboard" element={<DonorDashboard />} />
-            <Route path="/ledger" element={<TransparentLedger />} />
-          </Routes>
+          <AppContent />
         </Router>
       </AuthProvider>
     </GoogleOAuthProvider>

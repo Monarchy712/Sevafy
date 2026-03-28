@@ -43,7 +43,9 @@ export function AuthProvider({ children }) {
     
     // Fetch profile
     const profileRes = await api.get('/users/me');
-    setUser(profileRes.data);
+    const userData = profileRes.data;
+    setUser(userData);
+    return userData;
   };
 
   const register = async (userData) => {
@@ -62,8 +64,9 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.setItem('token', data.access_token);
       const profileRes = await api.get('/users/me');
-      setUser(profileRes.data);
-      return { require_role: false };
+      const userData = profileRes.data;
+      setUser(userData);
+      return { require_role: false, user: userData };
     }
   };
 
@@ -75,8 +78,9 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.setItem('token', data.access_token);
       const profileRes = await api.get('/users/me');
-      setUser(profileRes.data);
-      return { require_role: false };
+      const userData = profileRes.data;
+      setUser(userData);
+      return { require_role: false, user: userData };
     }
   };
 

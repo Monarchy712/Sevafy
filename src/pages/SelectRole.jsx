@@ -35,7 +35,11 @@ export default function SelectRole() {
         google_id: state.profile.google_id,
         role: role
       });
-      navigate('/dashboard');
+      if (role === 'STUDENT') {
+        navigate('/student-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error("Profile completion error:", err);
       setError("Failed to finalize account. Please try again.");

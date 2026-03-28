@@ -1,0 +1,171 @@
+/* StudentAuth.module.css - High Contrast, Stark, Mobile First */
+
+.container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  color: #000;
+  background-color: #FFF;
+}
+
+.authCard {
+  border: 3px solid #000;
+  padding: 32px;
+  background-color: #FFF;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 32px;
+  color: #333;
+}
+
+.errorAlert {
+  background-color: #000;
+  color: #FFF;
+  padding: 16px;
+  margin-bottom: 24px;
+  font-weight: bold;
+  border: 1px solid #000;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #000;
+  font-size: 18px;
+  background-color: #FFF;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 20px;
+  background-color: #000;
+  color: #FFF;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.submitBtn:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.separator {
+  margin: 32px 0;
+  text-align: center;
+  position: relative;
+}
+
+.separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 2px solid #000;
+  z-index: 1;
+}
+
+.separator span {
+  background-color: #FFF;
+  padding: 0 16px;
+  position: relative;
+  z-index: 2;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.googleBtn {
+  width: 100%;
+  padding: 16px;
+  background-color: #FFF;
+  color: #000;
+  border: 2px solid #000;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.googleBtn:disabled {
+  border-color: #666;
+  color: #666;
+}
+
+.footerText {
+  margin-top: 32px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.link {
+  color: #000;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #FFF;
+  border-top-color: #666;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Integrated Header for Auth pages */
+.simpleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #000;
+}
+
+.brandName {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: #000;
+}
