@@ -1,0 +1,152 @@
+/* StudentDashboard.module.css - Large, Mobile First, Barebones */
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 12px;
+  font-family: Arial, Helvetica, sans-serif; 
+  color: #000;
+  background-color: #FFF;
+}
+
+/* ── Banners ── */
+.liteBanner {
+  background-color: #000;
+  color: #0F0; /* Terminal Green for that stark hackathon performativity */
+  border: 2px solid #000;
+  padding: 12px;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 24px;
+  word-wrap: break-word;
+}
+
+/* ── Typography & Headers ── */
+.header {
+  margin-bottom: 32px;
+}
+.title {
+  font-size: 32px;
+  margin: 0;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.devToggle {
+  margin-top: 16px;
+  background-color: #EEEEEE;
+  color: #000;
+  border: 2px dashed #666;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  width: 100%;
+}
+
+/* ── Sections ── */
+.sectionBlock {
+  margin-bottom: 40px;
+}
+.sectionTitle {
+  font-size: 26px;
+  margin: 0 0 16px 0;
+  border-bottom: 3px solid #000;
+  padding-bottom: 8px;
+}
+
+/* ── Mobile Cards (Replaces Table) ── */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.card {
+  border: 2px solid #000;
+  padding: 16px;
+  background-color: #FAFAFA;
+}
+.cardHeader {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.cardBody {
+  font-size: 18px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.dueText {
+  color: #D32F2F;
+  font-weight: bold;
+}
+
+.actionBtn {
+  background-color: #000;
+  color: #FFF;
+  border: none;
+  padding: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  width: 100%;
+  text-transform: uppercase;
+  min-height: 54px;
+}
+.actionBtn:active {
+  background-color: #333;
+}
+
+/* ── Forms (Beneficiary View) ── */
+.basicForm {
+  padding-top: 8px;
+}
+.formRow {
+  margin-bottom: 24px;
+}
+.label {
+  display: block;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.hugeInput {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #000;
+  background-color: #FFF;
+  font-size: 20px;
+  min-height: 54px;
+}
+.fileControl {
+  width: 100%;
+  font-size: 18px;
+  padding: 12px 0;
+}
+
+.submitBtn {
+  background-color: #000;
+  color: #FFF;
+  border: none;
+  padding: 20px;
+  font-size: 22px;
+  font-weight: bold;
+  width: 100%;
+  text-transform: uppercase;
+  margin-top: 16px;
+}
+
+/* ── Telemetry Footer ── */
+.footerData {
+  margin-top: 48px;
+  text-align: center;
+}
+.divider {
+  border: 0;
+  border-top: 2px dashed #000;
+  margin-bottom: 16px;
+}
+.telemetry {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+}
