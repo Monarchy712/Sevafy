@@ -1,0 +1,347 @@
+/* ═══════════════════════════════════════════════════════════════
+   Progress Tracker — 12-Stage Scholarship Journey
+   Isolated: /features/ngo_portal/frontend/components/ProgressTracker.module.css
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Loading ─────────────────────────────────────────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem;
+  color: #766A65;
+  font-size: 0.9rem;
+}
+
+.loadingSpinner {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid #E4DECD;
+  border-top-color: #2F855A;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Tracker Root ────────────────────────────────────────────── */
+.tracker {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Student Card ────────────────────────────────────────────── */
+.studentCard {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: #FFFEFA;
+  border: 1px solid #E4DECD;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(42, 36, 33, 0.04);
+  flex-wrap: wrap;
+}
+
+.studentAvatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2F855A, #276749);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.studentInfo { flex: 1; min-width: 180px; }
+.studentName {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2A2421;
+  margin-bottom: 0.25rem;
+}
+.studentMeta { font-size: 0.82rem; color: #766A65; margin-bottom: 0.2rem; }
+.studentIncome { font-size: 0.78rem; color: #8B9A84; }
+
+.studentStats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.studentStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.statVal {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #2A2421;
+}
+.statLbl { font-size: 0.7rem; color: #766A65; font-weight: 600; }
+
+/* ── Verification Banner ─────────────────────────────────────── */
+.verificationBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.verifiedBanner {
+  background: rgba(47, 133, 90, 0.1);
+  color: #2F855A;
+  border: 1px solid rgba(47, 133, 90, 0.2);
+}
+
+.rejectedBanner {
+  background: rgba(220, 38, 38, 0.08);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+/* ── Progress Summary ────────────────────────────────────────── */
+.progressSummary {
+  background: #FFFEFA;
+  border: 1px solid #E4DECD;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progressTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #2A2421;
+}
+
+.progressPct {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2F855A;
+}
+
+.progressBarTrack {
+  height: 10px;
+  background: #F3EEE0;
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2F855A, #3A9B6B);
+  border-radius: 100px;
+  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBarFill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.progressSub { font-size: 0.75rem; color: #766A65; }
+
+/* ── 12-Stage Timeline ───────────────────────────────────────── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.stageWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+}
+
+/* Vertical connector line */
+.connector {
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  width: 2px;
+  height: calc(100% + 0px);
+  background: #E4DECD;
+  transition: background 0.4s ease;
+  z-index: 0;
+}
+
+.connectorDone {
+  background: linear-gradient(180deg, #2F855A, #3A9B6B);
+}
+
+/* Stage node (circle) */
+.stageNode {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2.5px solid #E4DECD;
+  background: #FFFEFA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stageNum {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #766A65;
+}
+
+.nodeCompleted {
+  background: linear-gradient(135deg, #2F855A, #3A9B6B);
+  border-color: #2F855A;
+  box-shadow: 0 0 0 4px rgba(47, 133, 90, 0.15);
+}
+
+.nodeCurrent {
+  border-color: #2F855A;
+  background: #FFFEFA;
+  box-shadow: 0 0 0 4px rgba(47, 133, 90, 0.2);
+}
+
+/* Pulsing indicator for current stage */
+.pulseRing {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2F855A;
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* Stage card */
+.stageCard {
+  flex: 1;
+  background: #FFFEFA;
+  border: 1px solid #E4DECD;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  cursor: default;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 66px;
+}
+
+.stageCardHovered {
+  border-color: #2F855A;
+  box-shadow: 0 8px 24px -6px rgba(47, 133, 90, 0.15);
+  transform: translateX(4px);
+}
+
+.stageDone .stageCard {
+  background: rgba(47, 133, 90, 0.04);
+  border-color: rgba(47, 133, 90, 0.2);
+}
+
+.stageCurrent .stageCard {
+  background: rgba(47, 133, 90, 0.05);
+  border-color: rgba(47, 133, 90, 0.35);
+}
+
+.stageCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stageEmoji { font-size: 1.2rem; flex-shrink: 0; }
+
+.stageName {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #2A2421;
+}
+
+.stageAmount {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #2F855A;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.currentTag {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2F855A;
+  background: rgba(47, 133, 90, 0.12);
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+/* Expanded detail on hover */
+.stageExpanded {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #E4DECD;
+  animation: expandIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes expandIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stageDesc { font-size: 0.8rem; color: #766A65; margin-bottom: 0.5rem; }
+.stageDisbDate { font-size: 0.78rem; color: #2F855A; font-weight: 600; margin-bottom: 0.35rem; }
+.stageTxHash {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: #8B9A84;
+  background: #F3EEE0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+.stagePending { font-size: 0.78rem; color: #D97706; }
+
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
