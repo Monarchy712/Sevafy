@@ -3,6 +3,7 @@ from typing import Optional
 import bcrypt
 from jose import JWTError, jwt
 import os
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -10,8 +11,13 @@ from sqlalchemy.orm import Session
 from . import schemas, models
 from .database import get_db
 
+# Load .env explicitly so this works regardless of the terminal's working directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 # Use secrets from environment
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("CRITICAL: 'SECRET_KEY' is not set in your .env file!")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 

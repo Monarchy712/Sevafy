@@ -15,7 +15,7 @@ import DonorDashboard from './pages/DonorDashboard';
 import BackgroundEffect from './components/BackgroundEffect';
 import Recommendations from './pages/Recommendations';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
 import './App.css';
 

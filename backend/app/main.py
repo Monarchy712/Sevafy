@@ -4,15 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 from . import models, schemas, auth
 from .database import engine, get_db
 from google.oauth2 import id_token
 from google.auth.transport import requests
-import os
 from .ml_service import get_top_ngos
 
 # Google Client ID from environment
-GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com")
 
 # Create all database tables based on our models
 models.Base.metadata.create_all(bind=engine)

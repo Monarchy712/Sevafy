@@ -1,4 +1,5 @@
 fastapi==0.111.0
+python-dotenv
 uvicorn==0.30.1
 sqlalchemy==2.0.31
 psycopg[binary]
@@ -8,3 +9,8 @@ python-jose[cryptography]==3.3.0
 python-multipart==0.0.9
 google-auth==2.29.0
 requests==2.32.3
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
