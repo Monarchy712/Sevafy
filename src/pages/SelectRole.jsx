@@ -35,7 +35,7 @@ export default function SelectRole() {
         google_id: state.profile.google_id,
         role: role
       });
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error("Profile completion error:", err);
       setError("Failed to finalize account. Please try again.");

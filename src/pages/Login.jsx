@@ -21,7 +21,7 @@ export default function Login() {
         if (result.require_role) {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
-          navigate('/');
+          navigate('/dashboard');
         }
       } catch (err) {
         setError("Google Login failed. Please try again.");
@@ -38,7 +38,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Please try again.');
     } finally {

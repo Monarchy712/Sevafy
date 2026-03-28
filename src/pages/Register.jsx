@@ -25,7 +25,7 @@ export default function Register() {
         if (result.require_role) {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
-          navigate('/');
+          navigate('/dashboard');
         }
       } catch (err) {
         setError("Google Login failed. Please try again.");
@@ -46,7 +46,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       await register(formData);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed.');
     } finally {

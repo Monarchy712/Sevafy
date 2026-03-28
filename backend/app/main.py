@@ -7,9 +7,10 @@ from . import models, schemas, auth
 from .database import engine, get_db
 from google.oauth2 import id_token
 from google.auth.transport import requests
+import os
 
-# Google Client ID from user
-GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com"
+# Google Client ID from environment
+GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
 
 # Create all database tables based on our models
 models.Base.metadata.create_all(bind=engine)
@@ -198,4 +199,75 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role
+    )
+
+# ── NGO & Donor Endpoints ─────────────────────────────
+
+from typing import List
+import uuid as uuid_module
+
+@app.get("/api/ngos", response_model=List[schemas.NGOResponse])
+def list_ngos(db: Session = Depends(get_db)):
+    """Public endpoint: returns all partner NGOs."""
+    ngos = db.query(models.NGO).all()
+    return [
+        schemas.NGOResponse(
+            id=str(n.id),
+            name=n.name,
+            description=n.description,
+            about=n.about,
+            net_funding=float(n.net_funding or 0),
+            beneficiary=n.beneficiary or []
+        )
+        for n in ngos
+    ]
+
+@app.post("/api/donate")
+def donate(
+    request: schemas.DonateRequest,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a donation. Flips has_donated and increments total_donated."""
+    if current_user.role != models.UserRole.DONATOR:
+        raise HTTPException(status_code=403, detail="Only donators can donate")
+    
+    profile = db.query(models.DonatorProfile).filter(
+        models.DonatorProfile.user_id == current_user.id
+    ).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Donator profile not found")
+    
+    # Update donor profile
+    profile.has_donated = True
+    profile.total_donated = float(profile.total_donated or 0) + request.amount
+    
+    # Update NGO net funding
+    ngo = db.query(models.NGO).filter(
+        models.NGO.id == uuid_module.UUID(request.ngo_id)
+    ).first()
+    if ngo:
+        ngo.net_funding = float(ngo.net_funding or 0) + request.amount
+    
+    db.commit()
+    return {"status": "success", "total_donated": float(profile.total_donated)}
+
+@app.get("/api/donor/status", response_model=schemas.DonorStatusResponse)
+def donor_status(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Returns the donor's has_donated flag and total_donated amount."""
+    if current_user.role != models.UserRole.DONATOR:
+        raise HTTPException(status_code=403, detail="Not a donator")
+    
+    profile = db.query(models.DonatorProfile).filter(
+        models.DonatorProfile.user_id == current_user.id
+    ).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Donator profile not found")
+    
+    return schemas.DonorStatusResponse(
+        has_donated=profile.has_donated,
+        total_donated=float(profile.total_donated or 0)
     )

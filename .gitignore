@@ -1,3 +1,10 @@
+# Environment variables
+.env
+backend/.env
+backend/venv/
+backend/__pycache__/
+backend/app/__pycache__/
+
 # Logs
 logs
 *.log
