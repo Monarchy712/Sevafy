@@ -22,8 +22,10 @@ export default function Login() {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
           const user = result.user;
-          if (user?.role === 'STUDENT') {
+          if (result.user?.role === 'STUDENT') {
             navigate('/student-dashboard');
+          } else if (result.user?.role === 'NGO_PERSONNEL') {
+            navigate('/ngo-dashboard');
           } else {
             navigate('/dashboard');
           }
@@ -45,6 +47,8 @@ export default function Login() {
       const userData = await login(email, password);
       if (userData?.role === 'STUDENT') {
         navigate('/student-dashboard');
+      } else if (userData?.role === 'NGO_PERSONNEL') {
+        navigate('/ngo-dashboard');
       } else {
         navigate('/dashboard');
       }

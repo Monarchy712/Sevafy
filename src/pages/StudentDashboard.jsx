@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import styles from './StudentDashboard.module.css';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import api from '../api';
 
 export default function StudentDashboard() {
   const { user, logout } = useContext(AuthContext);
@@ -9,12 +10,29 @@ export default function StudentDashboard() {
   const [isBeneficiary, setIsBeneficiary] = useState(false);
   const [selectedPurpose, setSelectedPurpose] = useState('');
   const [file, setFile] = useState(null);
+  
+  const [scholarships, setScholarships] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const mockScholarships = [
-    { id: 1, name: "Rural Merit 2026", amt: "Full Tuition", due: "15 Apr" },
-    { id: 2, name: "STEM Village Grant", amt: "₹50,000", due: "1 May" },
-    { id: 3, name: "Leader Award", amt: "₹25,000", due: "10 Jun" }
-  ];
+  // Fetch real scholarships from backend
+  useEffect(() => {
+    const fetchScholarships = async () => {
+      try {
+        const response = await api.get('/scholarships');
+        setScholarships(response.data);
+      } catch (err) {
+        console.error("Failed to fetch scholarships:", err);
+        setError("Could not load scholarships. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchScholarships();
+    }
+  }, [user]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -29,6 +47,16 @@ export default function StudentDashboard() {
     alert(`Success: Pending approval.`);
     setFile(null);
     setSelectedPurpose('');
+  };
+
+  const handleApply = async (schemeId) => {
+    try {
+      await api.post('/scholarships/apply', { scheme_id: schemeId });
+      alert("Application submitted successfully!");
+    } catch (err) {
+      console.error("Application error:", err);
+      alert(err.response?.data?.detail || "Failed to submit application.");
+    }
   };
 
   return (
@@ -72,21 +100,34 @@ export default function StudentDashboard() {
         ) : !isBeneficiary ? (
           <div className={styles.sectionBlock}>
             <h2 className={styles.sectionTitle}>Available Grants</h2>
-            
-            <div className={styles.cardList}>
-              {mockScholarships.map(scholar => (
-                <div key={scholar.id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <strong>{scholar.name}</strong>
+
+            {isLoading ? (
+              <div className={styles.telemetry}>Loading scholarships...</div>
+            ) : error ? (
+              <div className={styles.errorAlert}>{error}</div>
+            ) : scholarships.length === 0 ? (
+              <div className={styles.guestText}>No active scholarship schemes found.</div>
+            ) : (
+              <div className={styles.cardList}>
+                {scholarships.map(scholar => (
+                  <div key={scholar.id} className={styles.card}>
+                    <div className={styles.cardHeader}>
+                      <strong>{scholar.title}</strong>
+                    </div>
+                    <div className={styles.cardBody}>
+                      <div style={{ marginBottom: '8px' }}>{scholar.description}</div>
+                      <div>Amount: ₹{parseFloat(scholar.amount_per_student).toLocaleString('en-IN')}</div>
+                    </div>
+                    <button 
+                      className={styles.actionBtn}
+                      onClick={() => handleApply(scholar.id)}
+                    >
+                      Apply Now
+                    </button>
                   </div>
-                  <div className={styles.cardBody}>
-                    <div>Amount: {scholar.amt}</div>
-                    <div className={styles.dueText}>Due: {scholar.due}</div>
-                  </div>
-                  <button className={styles.actionBtn}>Apply Now</button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.sectionBlock}>

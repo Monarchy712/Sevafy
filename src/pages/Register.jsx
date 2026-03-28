@@ -76,7 +76,6 @@ export default function Register() {
             <select name="role" id="role" value={formData.role} onChange={handleChange}>
               <option value="STUDENT">Student</option>
               <option value="DONATOR">Donator</option>
-              <option value="NGO_PERSONNEL">NGO Representative</option>
             </select>
           </div>
           <div className={styles.formGroup}>

@@ -168,3 +168,29 @@ class ApproveStudentResponse(BaseModel):
     status: str
     application_id: str
     new_status: str
+
+# ── Scholarship Schemes ──────────────────────────────────────
+
+class ScholarshipSchemeResponse(BaseModel):
+    id: str
+    ngo_id: str
+    title: str
+    description: Optional[str] = None
+    amount_per_student: float
+    contract_address: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class ScholarshipApplicationCreate(BaseModel):
+    scheme_id: str
+
+class ScholarshipApplicationResponse(BaseModel):
+    id: str
+    scheme_id: str
+    student_id: str
+    status: str
+    applied_at: str
+
+    class Config:
+        orm_mode = True

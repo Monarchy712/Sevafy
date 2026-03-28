@@ -18,6 +18,7 @@ import TransparentLedger from './pages/TransparentLedger';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentLogin from './pages/StudentLogin';
 import StudentRegister from './pages/StudentRegister';
+import NGODashboard from './pages/NGODashboard';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
@@ -48,12 +49,16 @@ function NavBar() {
           {user?.role !== 'STUDENT' && (
             <NavLink to="/recommendations" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>AI Match</NavLink>
           )}
-          <NavLink 
-            to={user?.role === 'STUDENT' ? '/student-dashboard' : '/dashboard'} 
-            className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
-          >
-            Dashboard
-          </NavLink>
+          {user?.role === 'NGO_PERSONNEL' ? (
+            <NavLink to="/ngo-dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Dashboard</NavLink>
+          ) : (
+            <NavLink 
+              to={user?.role === 'STUDENT' ? '/student-dashboard' : '/dashboard'} 
+              className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
+            >
+              Dashboard
+            </NavLink>
+          )}
           <NavLink to="/ledger" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Ledger</NavLink>
         </div>
 
@@ -127,6 +132,7 @@ function AppContent() {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/student-ledger" element={<TransparentLedger />} />
         <Route path="/ledger" element={<TransparentLedger />} />
+        <Route path="/ngo-dashboard" element={<NGODashboard />} />
       </Routes>
     </>
   );

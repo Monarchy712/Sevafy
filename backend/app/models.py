@@ -94,7 +94,6 @@ class NGOPersonnel(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     ngo_id = Column(PG_UUID(as_uuid=True), ForeignKey("ngos.id"), nullable=False)
-    designation = Column(String(100), nullable=True)
 
 
 class StudentProfile(Base):

@@ -20,6 +20,7 @@ from . import blockchain
 from .genai_verifier import verify_student_documents
 from .websocket_manager import ws_manager
 from .event_listener import start_event_listener
+from .ngo_router import router as ngo_router
 
 # Google Client ID from environment
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -37,6 +38,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(ngo_router, prefix="/api")
 
 
 # ── Startup: launch event listener ────────────────────────
@@ -640,6 +643,66 @@ def get_ledger(db: Session = Depends(get_db)):
     return schemas.LedgerResponse(
         transactions=transactions[:50],
         count=len(transactions)
+    )
+
+
+# ── Scholarship Endpoints ────────────────────────────────────
+
+@app.get("/api/scholarships", response_model=List[schemas.ScholarshipSchemeResponse])
+def list_scholarships(db: Session = Depends(get_db)):
+    """Returns all available scholarship schemes."""
+    schemes = db.query(models.ScholarshipScheme).all()
+    return [
+        schemas.ScholarshipSchemeResponse(
+            id=str(s.id),
+            ngo_id=str(s.ngo_id),
+            title=s.title,
+            description=s.description,
+            amount_per_student=float(s.amount_per_student),
+            contract_address=s.contract_address
+        )
+        for s in schemes
+    ]
+
+@app.post("/api/scholarships/apply", response_model=schemas.ScholarshipApplicationResponse)
+def apply_for_scholarship(
+    request: schemas.ScholarshipApplicationCreate,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Allows a student to apply for a scholarship scheme."""
+    if current_user.role != models.UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can apply for scholarships")
+
+    profile = db.query(models.StudentProfile).filter(
+        models.StudentProfile.user_id == current_user.id
+    ).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+
+    # Check if already applied
+    existing = db.query(models.ScholarshipApplication).filter(
+        models.ScholarshipApplication.scheme_id == uuid_module.UUID(request.scheme_id),
+        models.ScholarshipApplication.student_id == profile.id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Already applied to this scheme")
+
+    new_app = models.ScholarshipApplication(
+        scheme_id=uuid_module.UUID(request.scheme_id),
+        student_id=profile.id,
+        status=models.ApplicationStatus.SUBMITTED
+    )
+    db.add(new_app)
+    db.commit()
+    db.refresh(new_app)
+
+    return schemas.ScholarshipApplicationResponse(
+        id=str(new_app.id),
+        scheme_id=str(new_app.scheme_id),
+        student_id=str(new_app.student_id),
+        status=new_app.status.value,
+        applied_at=new_app.applied_at.isoformat()
     )
 
 
