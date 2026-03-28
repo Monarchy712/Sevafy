@@ -12,7 +12,7 @@ from . import schemas, models
 from .database import get_db
 
 # Load .env explicitly so this works regardless of the terminal's working directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'), override=True)
 
 # Use secrets from environment
 SECRET_KEY = os.environ.get("SECRET_KEY")

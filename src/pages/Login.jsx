@@ -88,7 +88,7 @@ export default function Login() {
         </form>
 
         <div className={styles.separator}>
-          <span>or sign in with</span>
+          <span>or log in with</span>
         </div>
 
         <div className={styles.googleButtonWrapper}>

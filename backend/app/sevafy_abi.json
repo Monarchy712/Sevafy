@@ -1,0 +1,632 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_donorUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_ngoUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "donorPaymentCall",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "studentUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "verificationType",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "status",
+				"type": "bool"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "VerificationRecorded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "donationId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "donorUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "ngoUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "donorPaymentEvent",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "donationId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "ngoUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "studentUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "fApprovalEvent",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_donationId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_ngoUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_studentUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_purpose",
+				"type": "uint256"
+			}
+		],
+		"name": "fundTransfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_donationId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_ngoUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_studentUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_purpose",
+				"type": "uint256"
+			}
+		],
+		"name": "ngoPaymentCall",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "donationId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "ngoUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "studentUID",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "ngoPaymentEvent",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_studentUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_type",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "_status",
+				"type": "bool"
+			}
+		],
+		"name": "recordVerification",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "donationCounter",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "donorPaymentData",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "donationId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "donorUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "ngoUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timeStamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getDonorPaymentData",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "donationId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "donorUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ngoUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeStamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Sevafy.donorPayment[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getNgoPaymentData",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "donationId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ngoUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "studentUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeStamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "purpose",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Sevafy.ngoPayment[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_donationId",
+				"type": "uint256"
+			}
+		],
+		"name": "getStudentsFundedByDonation",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "purpose",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "donationId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "senderUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "receiverUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeStamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Sevafy.stdPayment[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_uid",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_clientType",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_operation",
+				"type": "string"
+			}
+		],
+		"name": "getUIDPaymentData",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "purpose",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "donationId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "senderUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "receiverUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeStamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Sevafy.stdPayment[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_donationId",
+				"type": "uint256"
+			}
+		],
+		"name": "isDonationFullyUsed",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "last50Transactions",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "purpose",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "donationId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "senderUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "receiverUID",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeStamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Sevafy.stdPayment[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "ngoPaymentData",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "donationId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "ngoUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "studentUID",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timeStamp",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "purpose",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "remainingFunds",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]

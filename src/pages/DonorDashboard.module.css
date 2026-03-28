@@ -57,9 +57,12 @@
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-fg);
-  margin-bottom: var(--space-lg);
+  margin: var(--space-xl) 0 var(--space-lg);
   padding-bottom: var(--space-sm);
   border-bottom: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 /* ── NGO Card Grid ──────────────────────────────────── */
@@ -159,29 +162,35 @@
 
 .donateBtn {
   width: 100%;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border: none;
   border-radius: var(--radius-md);
   background: var(--color-accent);
   color: #fff;
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 0.9rem;
-  letter-spacing: 0.03em;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(210, 84, 59, 0.2);
 }
 
-.donateBtn:hover {
+.donateBtn:hover:not(:disabled) {
   background: var(--color-accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(210, 84, 59, 0.35);
+  box-shadow: 0 8px 25px rgba(210, 84, 59, 0.35);
+}
+
+.donateBtn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .donateBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  filter: grayscale(0.5);
 }
 
 /* ── Amount Picker ──────────────────────────────────── */
@@ -195,29 +204,37 @@
 
 .amountOption {
   flex: 1;
-  min-width: 70px;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  min-width: 75px;
+  padding: 10px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-fg);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: center;
 }
 
-.amountOption:hover {
+.amountOption:hover:not(.amountOptionActive) {
   border-color: var(--color-accent);
   color: var(--color-accent);
+  background: rgba(210, 84, 59, 0.05);
 }
 
 .amountOptionActive {
   background: var(--color-accent);
   color: #fff;
   border-color: var(--color-accent);
+  box-shadow: 0 4px 12px rgba(210, 84, 59, 0.25);
+}
+
+.amountOptionActive:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  /* Use the same background or slightly darker, avoid "block of green" if green was unintended */
 }
 
 .customAmountInput {
@@ -457,5 +474,468 @@
   .studentAmount {
     text-align: center;
     margin-top: 1rem;
+  }
+}
+
+/* ── Blockchain TX Result Banner ───────────────────── */
+
+.txResultBanner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(58, 155, 107, 0.12));
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xl);
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.txResultIcon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.txResultInfo {
+  flex: 1;
+}
+
+.txResultInfo strong {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: var(--color-success, #3a9b6b);
+  margin-bottom: 0.25rem;
+}
+
+.txResultMeta {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.txHash {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  cursor: help;
+}
+
+/* ── Donation Badge + Fully Used ───────────────────── */
+
+.impactCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.donationBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #3a9b6b;
+  background: rgba(58, 155, 107, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(58, 155, 107, 0.2);
+}
+
+.fullyUsedBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* ── Donation Metadata ─────────────────────────────── */
+
+.donationMeta {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.remainingFunds {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.studentCount {
+  color: var(--color-success, #3a9b6b);
+  font-weight: 600;
+}
+
+/* ── Empty State ───────────────────────────────────── */
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-muted);
+  font-style: italic;
+  font-size: 1rem;
+}
+
+/* ── Blockchain UID Badge ──────────────────────────── */
+
+.uidBadge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  background: var(--color-accent-light, rgba(210, 84, 59, 0.08));
+  border: 1px solid rgba(210, 84, 59, 0.15);
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+/* ── Blockchain Transaction Table ──────────────────── */
+
+.tableWrapper {
+  overflow-x: auto;
+  margin-bottom: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  margin-top: 1.5rem;
+  border: 1px solid rgba(210, 84, 59, 0.1);
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.tableWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.blockchainTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+}
+
+.blockchainTable thead {
+  background: linear-gradient(135deg, rgba(250, 247, 240, 0.6), rgba(255, 255, 255, 0.8));
+}
+
+.blockchainTable th {
+  padding: 20px 24px;
+  text-align: left;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  border-bottom: 1px solid rgba(210, 84, 59, 0.1);
+  white-space: nowrap;
+}
+
+.blockchainTable td {
+  padding: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  color: var(--color-fg);
+  vertical-align: middle;
+}
+
+.blockchainTable tr:last-child td {
+  border-bottom: none;
+}
+
+.txRow {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-bottom: 1px solid rgba(210, 84, 59, 0.08);
+}
+
+.txRow:last-child {
+  border-bottom: none;
+}
+
+.txRow:hover {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(210, 84, 59, 0.05);
+  transform: scale(1.001);
+}
+
+.uidWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.entityName {
+  font-weight: 700;
+  color: var(--color-fg);
+  font-size: 0.9rem;
+}
+
+.smallUid {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  opacity: 0.7;
+}
+
+.actionCell {
+  text-align: right;
+  padding: 12px 24px;
+}
+
+.trackBtn {
+  padding: 8px 16px;
+  border: 1px solid rgba(210, 84, 59, 0.3);
+  background: white;
+  color: var(--color-accent);
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trackBtn:hover {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+  box-shadow: 0 4px 12px rgba(210, 84, 59, 0.15);
+}
+
+.youBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: #3a9b6b; /* Green for "You" is more intuitive */
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.amountCell {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: var(--color-fg);
+  font-size: 1.1rem;
+}
+
+.amountCell::before {
+  content: '₹';
+  font-size: 0.9rem;
+  margin-right: 2px;
+  color: var(--color-muted);
+}
+
+.purposeCell {
+  font-size: 0.83rem;
+  color: var(--color-muted);
+}
+
+.timeCell {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+/* ── Thank You Overlay ───────────────────── */
+
+.thankYouOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(42, 36, 33, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.thankYouContent {
+  background: white;
+  padding: 3rem;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  transform-origin: center;
+  animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.thankYouHeart {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: beat 1s infinite alternate;
+}
+
+@keyframes beat {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+
+.thankYouTitle {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-fg);
+  margin-bottom: 1rem;
+}
+
+.thankYouText {
+  color: var(--color-muted);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.thankYouProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: var(--color-accent);
+  width: 100%;
+  animation: progressLine 3s linear forwards;
+}
+
+@keyframes progressLine {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .blockchainTable {
+    font-size: 0.78rem;
+  }
+  .blockchainTable th,
+  .blockchainTable td {
+    padding: 8px 10px;
+  }
+}
+
+/* ── Recording Overlay ─────────────────────── */
+
+.recordingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 2, 23, 0.45);
+  backdrop-filter: blur(12px);
+  z-index: 3000; /* Ensure it's above everything */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.recordingContent {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  padding: 3.5rem;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: white;
+  animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.recordingTitle {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: white !important;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.recordingSubtitle {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* ── Blockchain Cube Loader ────────────────── */
+
+.blockchainLoader {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.cube {
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 4px;
+  animation: cubePulse 1.2s infinite ease-in-out;
+}
+
+.cube:nth-child(2) { animation-delay: 0.3s; }
+.cube:nth-child(3) { animation-delay: 0.9s; }
+.cube:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes cubePulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.3;
+    background: white;
+  }
+  50% { 
+    transform: scale(1.15); 
+    opacity: 1;
+    background: var(--color-accent);
+    box-shadow: 0 0 15px var(--color-accent);
   }
 }

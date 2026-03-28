@@ -14,3 +14,8 @@ numpy
 scikit-learn
 xgboost
 joblib
+web3==6.11.4
+eth-account==0.10.0
+setuptools<70
+websockets
+

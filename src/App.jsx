@@ -14,6 +14,7 @@ import SelectRole from './pages/SelectRole';
 import DonorDashboard from './pages/DonorDashboard';
 import BackgroundEffect from './components/BackgroundEffect';
 import Recommendations from './pages/Recommendations';
+import TransparentLedger from './pages/TransparentLedger';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
@@ -41,6 +42,7 @@ function NavBar() {
         {user ? (
           <div className="navbar-auth">
             <Link to="/recommendations" className="navbar-link" style={{marginRight: '1rem'}}>AI Match</Link>
+            <Link to="/ledger" className="navbar-link" style={{marginRight: '1rem'}}>Ledger</Link>
             <Link to="/dashboard" className="btn btn-ghost">Dashboard</Link>
             <span className="navbar-greeting">
               {user.full_name}
@@ -52,6 +54,7 @@ function NavBar() {
         ) : (
           <div className="navbar-auth">
             <Link to="/recommendations" className="navbar-link">AI Match</Link>
+            <Link to="/ledger" className="navbar-link" style={{marginRight: '0.75rem'}}>Ledger</Link>
             <Link to="/login" className="btn btn-ghost">Log In</Link>
             <Link to="/register" className="btn btn-primary">
               Get Started
@@ -100,6 +103,7 @@ export default function App() {
             <Route path="/select-role" element={<SelectRole />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/dashboard" element={<DonorDashboard />} />
+            <Route path="/ledger" element={<TransparentLedger />} />
           </Routes>
         </Router>
       </AuthProvider>

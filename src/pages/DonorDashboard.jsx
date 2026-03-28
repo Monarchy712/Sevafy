@@ -1,37 +1,26 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api';
 import styles from './DonorDashboard.module.css';
 
 const AMOUNTS = [100, 500, 1000, 5000];
 
-// Hardcoded placeholder impact data (NOT from backend, as requested)
-const PLACEHOLDER_IMPACT = [
-  { ngo: 'Pratham Education Foundation', amount: 2500, date: '2025-12-15' },
-  { ngo: 'Teach For India', amount: 1000, date: '2025-11-28' },
-  { ngo: 'Akshaya Patra Foundation', amount: 5000, date: '2025-10-03' },
-];
-
-const PLACEHOLDER_STUDENTS = [
-  { 
-    id: 1, 
-    name: 'Aarti K.', 
-    school: 'Pratham Public School', 
-    grade: '8th Grade', 
-    amount: 1500, 
-    message: '"Thank you! The new textbooks and uniform made my return to school wonderful."',
-    image: 'https://picsum.photos/seed/stu1/100/100'
-  },
-  { 
-    id: 2, 
-    name: 'Rohan D.', 
-    school: 'Vidya Gyan Academy', 
-    grade: '10th Grade', 
-    amount: 2000, 
-    message: '"My scholarship covered the term fees that my family struggled with. I am preparing for my boards now!"',
-    image: 'https://picsum.photos/seed/stu2/100/100'
-  }
-];
+// Purpose mapping from smart contract
+const PURPOSE_MAP = {
+  0: 'New Admission',
+  1: 'Mid-Term Installment',
+  2: 'Academic Renewal',
+  3: 'Completion Status',
+  4: 'Study Material Support',
+  5: 'Hostel / Living Expense',
+  6: 'Emergency Support',
+  7: 'Dropout Recovery Support',
+  8: 'Skill / Certification Support',
+  9: 'Device / Tech Support',
+  10: 'Performance Incentive',
+  11: 'Special Category Support',
+  100: 'Donation',
+};
 
 // Picsum placeholder images for NGO cards
 const NGO_IMAGES = [
@@ -42,6 +31,16 @@ const NGO_IMAGES = [
   'https://picsum.photos/seed/ngo5/600/300',
 ];
 
+function formatTimestamp(ts) {
+  if (!ts) return '—';
+  // Contract returns unix timestamp (uint256)
+  const date = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts);
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-IN', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+}
+
 export default function DonorDashboard() {
   const { user } = useContext(AuthContext);
   const [ngos, setNgos] = useState([]);
@@ -50,6 +49,29 @@ export default function DonorDashboard() {
   const [selectedAmounts, setSelectedAmounts] = useState({});
   const [customAmounts, setCustomAmounts] = useState({});
   const [donatingTo, setDonatingTo] = useState(null);
+
+  // Blockchain data from getUIDPaymentData()
+  // Each record: { purpose, donation_id, sender_uid, receiver_uid, amount, timestamp, tx_type }
+  const [blockchainTransactions, setBlockchainTransactions] = useState([]);
+  const [lastTxResult, setLastTxResult] = useState(null);
+
+  // WebSocket for real-time updates
+  const wsRef = useRef(null);
+  
+  // Ref for scrolling to transactions
+  const transRef = useRef(null);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+
+  // ---------- Fetch blockchain transactions ----------
+  const fetchBlockchainData = async () => {
+    try {
+      const txRes = await api.get('/blockchain/my-transactions');
+      setBlockchainTransactions(txRes.data || []);
+    } catch (e) {
+      console.warn('Blockchain data unavailable:', e);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +82,9 @@ export default function DonorDashboard() {
         ]);
         setNgos(ngosRes.data);
         setDonorStatus(statusRes.data);
+
+        // Fetch blockchain transactions via getUIDPaymentData()
+        await fetchBlockchainData();
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
       } finally {
@@ -69,24 +94,88 @@ export default function DonorDashboard() {
     fetchData();
   }, []);
 
+  // WebSocket for real-time donor updates
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+
+    const connect = () => {
+      if (!alive) return;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${protocol}//${window.location.host}/ws/donor/${user.id}`);
+      wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        if (event.data === 'pong') return;
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'new_transaction') {
+            // Refetch from blockchain for accurate data
+            fetchBlockchainData();
+          }
+        } catch (e) {
+          console.error('WS parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        if (alive) setTimeout(connect, 3000);
+      };
+      ws.onerror = () => ws.close();
+    };
+
+    connect();
+    return () => {
+      alive = false;
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, [user]);
+
   const handleDonate = async (ngoId) => {
     const amount = selectedAmounts[ngoId] || Number(customAmounts[ngoId]);
     if (!amount || isNaN(amount) || amount <= 0) return;
-    
+
     setDonatingTo(ngoId);
+    setLastTxResult(null);
+    setIsRecording(true);
+
     try {
       const res = await api.post('/donate', { ngo_id: ngoId, amount });
       setDonorStatus({
         has_donated: true,
         total_donated: res.data.total_donated,
       });
-      // Update NGO funding in local state
-      setNgos(prev => prev.map(n => 
-        n.id === ngoId 
+      setNgos(prev => prev.map(n =>
+        n.id === ngoId
           ? { ...n, net_funding: n.net_funding + amount }
           : n
       ));
+
+      // Show blockchain result
+      setLastTxResult({
+        donation_id: res.data.donation_id,
+        tx_hash: res.data.tx_hash,
+        confirmed: res.data.confirmed,
+        amount,
+      });
+
+      // Show Thank You overlay + scroll to ledger
+      setIsRecording(false);
+      setShowThankYou(true);
+      setTimeout(() => setShowThankYou(false), 3000);
+
+      // Smooth scroll to transactions
+      setTimeout(() => {
+        transRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
+
+      // ── Reliability Fix ─────────────────────────
+      // Wait 1.5s for the blockchain node to index the new transaction
+      await new Promise(r => setTimeout(r, 1500));
+      await fetchBlockchainData();
+
     } catch (err) {
+      setIsRecording(false);
       console.error('Donation failed:', err);
     } finally {
       setDonatingTo(null);
@@ -119,19 +208,45 @@ export default function DonorDashboard() {
 
   const hasDonated = donorStatus?.has_donated;
 
+  // Extract unique donation IDs from blockchain data (integers from contract)
+  const uniqueDonationIds = [...new Set(
+    blockchainTransactions
+      .filter(t => t.tx_type === 'DONOR_TO_NGO')
+      .map(t => t.donation_id)
+  )];
+
   return (
     <div className={styles.dashboardContainer}>
-      {/* ── Overlay: shown until first donation ──────── */}
-      {!hasDonated && (
-        <div className={styles.overlay}>
-          <div className={styles.overlayIcon}>💝</div>
-          <h2 className={styles.overlayTitle}>Make Your First Donation</h2>
-          <p className={styles.overlaySubtitle}>
-            Choose an NGO below and make your first contribution. Every rupee is tracked 
-            transparently and goes directly towards education.
-          </p>
-        </div>
-      )}
+      {/* ── Dashboard Content ────────────────────── */}
+      {!hasDonated && !isRecording && (
+          <div className={styles.overlay}>
+            <div className={styles.overlayIcon}>💝</div>
+            <h2 className={styles.overlayTitle}>Make Your First Donation</h2>
+            <p className={styles.overlaySubtitle}>
+              Choose an NGO below and make your first contribution. Every rupee is tracked
+              transparently on the blockchain.
+            </p>
+          </div>
+        )}
+
+        {/* ── Recording Overlay ─────────────────────── */}
+        {isRecording && (
+          <div className={styles.recordingOverlay}>
+            <div className={styles.recordingContent}>
+              <div className={styles.blockchainLoader}>
+                <div className={styles.cube}></div>
+                <div className={styles.cube}></div>
+                <div className={styles.cube}></div>
+                <div className={styles.cube}></div>
+              </div>
+              <h2 className={styles.recordingTitle}>Recording on Chain...</h2>
+              <p className={styles.recordingSubtitle}>
+                Securing your donation on the blockchain ledger. 
+                This usually takes less than 7 seconds on the testnet.
+              </p>
+            </div>
+          </div>
+        )}
 
       {/* ── Post-Donation Dashboard ─────────────────── */}
       {hasDonated && (
@@ -139,50 +254,112 @@ export default function DonorDashboard() {
           <div className={styles.welcomeBanner}>
             <div className={styles.welcomeText}>
               <h2>Welcome back, {user?.full_name?.split(' ')[0]} 👋</h2>
-              <p>Your generosity is changing lives. Here's your impact so far.</p>
+              <p>Your generosity is changing lives. Here's your blockchain-verified impact.</p>
+              {user?.blockchain_uid && (
+                <span className={styles.uidBadge}>
+                  Blockchain UID: {user.blockchain_uid}
+                </span>
+              )}
             </div>
             <div className={styles.totalDonated}>
               ₹{(donorStatus.total_donated || 0).toLocaleString('en-IN')}
             </div>
           </div>
 
-          <h3 className={styles.sectionHeader}>Your Impact</h3>
-          <div className={styles.impactGrid}>
-            {PLACEHOLDER_IMPACT.map((item, idx) => (
-              <div key={idx} className={styles.impactCard}>
-                <div className={styles.impactNgo}>{item.ngo}</div>
-                <div className={styles.impactAmount}>
-                  ₹{item.amount.toLocaleString('en-IN')}
-                </div>
-                <div className={styles.impactDate}>
-                  {new Date(item.date).toLocaleDateString('en-IN', {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                  })}
+          {/* Last Transaction Result */}
+          {lastTxResult && lastTxResult.tx_hash && (
+            <div className={styles.txResultBanner}>
+              <div className={styles.txResultIcon}>✅</div>
+              <div className={styles.txResultInfo}>
+                <strong>Donation Recorded on Blockchain!</strong>
+                <div className={styles.txResultMeta}>
+                  Donation #{lastTxResult.donation_id} •
+                  ₹{lastTxResult.amount.toLocaleString('en-IN')} •
+                  <span className={styles.txHash} title={lastTxResult.tx_hash}>
+                    TX: {lastTxResult.tx_hash.slice(0, 10)}...{lastTxResult.tx_hash.slice(-8)}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
-          <h3 className={styles.sectionHeader}>Students Supported</h3>
-          <div className={styles.studentGrid}>
-            {PLACEHOLDER_STUDENTS.map((student) => (
-              <div key={student.id} className={styles.studentCard}>
-                <img src={student.image} alt={student.name} className={styles.studentAvatar} loading="lazy" />
-                <div className={styles.studentInfo}>
-                  <h4 className={styles.studentName}>{student.name}</h4>
-                  <div className={styles.studentMeta}>
-                    {student.grade} • {student.school}
-                  </div>
-                  <div className={styles.studentMessage}>
-                    {student.message}
-                  </div>
-                </div>
-                <div className={styles.studentAmount}>
-                  ₹{student.amount.toLocaleString('en-IN')}
-                </div>
+          {/* ── Thank You Overlay ───────────────────── */}
+          {showThankYou && (
+            <div className={styles.thankYouOverlay}>
+              <div className={styles.thankYouContent}>
+                <div className={styles.thankYouHeart}>💖</div>
+                <h2 className={styles.thankYouTitle}>Thank You!</h2>
+                <p className={styles.thankYouText}>
+                  Your donation has been confirmed on the blockchain. 
+                  Every contribution makes a real difference.
+                </p>
+                <div className={styles.thankYouProgress}></div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* ── Blockchain Transaction History ─────────── */}
+          <h3 className={styles.sectionHeader} ref={transRef}>Your Donations (Blockchain Verified)</h3>
+
+          {blockchainTransactions.length > 0 ? (
+            <div className={styles.tableWrapper}>
+              <table className={styles.blockchainTable}>
+                <thead>
+                  <tr>
+                    <th>Donation #</th>
+                    <th>Sender UID</th>
+                    <th>Receiver UID</th>
+                    <th>Amount</th>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {blockchainTransactions.map((tx, idx) => (
+                    <tr key={idx} className={styles.txRow}>
+                      <td>
+                        <span className={styles.donationBadge}>#{tx.donation_id}</span>
+                      </td>
+                      <td className={styles.uidCell}>
+                        <div className={styles.uidWithBadge}>
+                          <span className={styles.entityName}>
+                            {tx.sender_uid === user?.blockchain_uid ? 'You' : user?.full_name}
+                          </span>
+                          <span className={styles.smallUid}>({tx.sender_uid})</span>
+                          {tx.sender_uid === user?.blockchain_uid && (
+                            <span className={styles.youBadge}>You</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className={styles.uidCell}>
+                        <div className={styles.uidWithBadge}>
+                          <span className={styles.entityName}>
+                            {ngos.find(n => n.blockchain_uid === tx.receiver_uid)?.name || 'Partner NGO'}
+                          </span>
+                          <span className={styles.smallUid}>({tx.receiver_uid})</span>
+                        </div>
+                      </td>
+                      <td className={styles.amountCell}>
+                        {(tx.amount || 0).toLocaleString('en-IN')}
+                      </td>
+                      <td className={styles.timeCell}>
+                        {formatTimestamp(tx.timestamp)}
+                      </td>
+                      <td className={styles.actionCell}>
+                        <button className={styles.trackBtn}>
+                          Track Donation
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              Your donations will appear here once confirmed on the blockchain.
+            </div>
+          )}
         </>
       )}
 
@@ -194,7 +371,7 @@ export default function DonorDashboard() {
         {ngos.map((ngo, idx) => (
           <div key={ngo.id} className={styles.ngoCard}>
             <img
-              src={NGO_IMAGES[idx % NGO_IMAGES.length]}
+              src={ngo.logo_url || `https://picsum.photos/400/250?random=${idx}`}
               alt={ngo.name}
               className={styles.ngoCardImage}
               loading="lazy"
@@ -231,7 +408,7 @@ export default function DonorDashboard() {
                 ))}
               </div>
 
-              <input 
+              <input
                 type="number"
                 min="1"
                 placeholder="Custom Amount (₹)"
@@ -246,7 +423,7 @@ export default function DonorDashboard() {
                 onClick={() => handleDonate(ngo.id)}
               >
                 {donatingTo === ngo.id ? (
-                  <><span className={styles.spinner}></span> Processing...</>
+                  <><span className={styles.spinner}></span> Recording on Blockchain...</>
                 ) : (selectedAmounts[ngo.id] || customAmounts[ngo.id]) ? (
                   `Donate ₹${Number(selectedAmounts[ngo.id] || customAmounts[ngo.id]).toLocaleString('en-IN')}`
                 ) : (
