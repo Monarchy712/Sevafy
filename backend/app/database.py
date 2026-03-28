@@ -1,12 +1,12 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Use environment variable or default to the provided Neon PostgreSQL cloud instance
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+psycopg://neondb_owner:npg_VNZJb9OBw5eA@ep-late-voice-a1bmdqzm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-)
+# Load environment variables from .env file
+load_dotenv()
+
+SQLALCHEMY_DATABASE_URL = os.environ["DATABASE_URL"]
 
 # Create the SQLAlchemy engine for PostgreSQL
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

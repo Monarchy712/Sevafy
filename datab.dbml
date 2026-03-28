@@ -57,8 +57,9 @@ Enum ledger_direction {
 Table users {
   id              uuid         [pk, default: `uuid_generate_v4()`]
   email           varchar(255) [not null, unique]
-  password        text         [not null, note: 'PBKDF2 / Argon2 HASHED']
+  password        text         [note: 'Nullable for OAuth, HASHED otherwise']
   full_name       varchar(255) [not null]
+  google_id       varchar(255) [unique, note: 'For Google OAuth']
   role            user_role    [not null]
   wallet_address  varchar(66)  [note: 'Optional/Public', default: null]
   created_at      timestamptz  [default: `now()`]
@@ -68,6 +69,9 @@ Table ngos {
   id                   uuid         [pk, default: `uuid_generate_v4()`]
   name                 varchar(255) [not null]
   description          text
+  about                text         [note: 'Vision/mission statement']
+  net_funding          decimal(14,2)[default: 0, not null, note: 'Total funding received']
+  beneficiary          varchar[]    [note: 'Array of beneficiary tags e.g. ["elementary"]']
   
   // -- Public/Business Bank Details (Fine for public tables) --
   bank_account_number  varchar(30)  [not null]
@@ -101,6 +105,9 @@ Table student_profiles {
 Table donator_profiles {
   id              uuid [pk, default: `uuid_generate_v4()`]
   user_id         uuid [not null, unique, ref: - users.id]
+  
+  has_donated     boolean [default: false, not null, note: 'Controls dashboard overlay state']
+  total_donated   decimal(14,2) [default: 0, not null, note: 'Running total of donations']
   
   // -- SECURE FIELDS --
   pan_number      text [note: 'ENCRYPTED (For 80G tax benefits)']
@@ -174,6 +181,6 @@ Table transparency_ledger {
 // ────────────────────────────────────────────────────────────────────────────
 // 1. NGO details are PUBLIC (business info).
 // 2. Donor & Student bank/PAN details are ENCRYPTED.
-// 3. Passwords are HASHED.
+// 3. Passwords are HASHED or NULL if using Google OAuth.
 // 4. Ledger is public (only shows amounts and NGO link, not private donor details).
 // ────────────────────────────────────────────────────────────────────────────

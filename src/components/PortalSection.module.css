@@ -27,6 +27,39 @@
   gap: 2.5rem;
 }
 
+.dashboardGrid {
+  display: flex;
+  justify-content: center;
+}
+
+.dashboardCard {
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+  padding: 4rem 3rem 4.5rem;
+  border: 2px solid rgba(210, 84, 59, 0.15);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(250, 247, 240, 0.9));
+}
+
+.dashboardCard .icon {
+  margin: 0 auto var(--space-lg);
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-xl);
+}
+
+.dashboardCard .heading {
+  font-size: 1.8rem;
+  background: linear-gradient(135deg, var(--color-fg) 40%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboardCard:hover {
+  border-color: var(--color-accent);
+}
+
 .card {
   position: relative;
   padding: 3rem 2.5rem 3.5rem;

@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Text, Numeric, Boolean, DateTime, ForeignKey, Enum as SQLEnum, Integer
+from sqlalchemy import Column, String, Text, Numeric, Boolean, DateTime, ForeignKey, Enum as SQLEnum, Integer, ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -44,6 +44,9 @@ class NGO(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
+    about = Column(Text, nullable=True)  # Vision/mission statement
+    net_funding = Column(Numeric(14, 2), nullable=False, default=0)  # Total funding received
+    beneficiary = Column(ARRAY(Text), nullable=True)  # e.g. ["elementary", "undergrad"]
     bank_account_number = Column(String(30), nullable=False)
     bank_ifsc_code = Column(String(11), nullable=False)
     upi_id = Column(String(100), nullable=False)
@@ -59,8 +62,6 @@ class StudentProfile(Base):
     course = Column(String(255), nullable=True)
     annual_family_income = Column(Numeric(14, 2), nullable=True)
     
-    # Encrypted fields handling omitted for MVP simplicity, saving as text 
-    # (can add pgcrypto handling later, but we keep it functionally identical for now)
     bank_account_number = Column(Text, nullable=True)
     bank_ifsc_code = Column(Text, nullable=True)
     wallet_address = Column(String(66), nullable=True)
@@ -73,6 +74,8 @@ class DonatorProfile(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
     
+    has_donated = Column(Boolean, nullable=False, default=False)  # Controls overlay
+    total_donated = Column(Numeric(14, 2), nullable=False, default=0)  # Running total
     pan_number = Column(Text, nullable=True)
     bank_account_number = Column(Text, nullable=True)
     bank_ifsc_code = Column(Text, nullable=True)

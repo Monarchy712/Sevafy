@@ -11,10 +11,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import SelectRole from './pages/SelectRole';
+import DonorDashboard from './pages/DonorDashboard';
 import BackgroundEffect from './components/BackgroundEffect';
 import Recommendations from './pages/Recommendations';
 
-const GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 import './App.css';
 
@@ -39,7 +40,8 @@ function NavBar() {
 
         {user ? (
           <div className="navbar-auth">
-            <Link to="/recommendations" className="navbar-link">AI Match</Link>
+            <Link to="/recommendations" className="navbar-link" style={{marginRight: '1rem'}}>AI Match</Link>
+            <Link to="/dashboard" className="btn btn-ghost">Dashboard</Link>
             <span className="navbar-greeting">
               {user.full_name}
             </span>
@@ -97,6 +99,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/select-role" element={<SelectRole />} />
             <Route path="/recommendations" element={<Recommendations />} />
+            <Route path="/dashboard" element={<DonorDashboard />} />
           </Routes>
         </Router>
       </AuthProvider>

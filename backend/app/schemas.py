@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from .models import UserRole
 
 # Basic Schemas for Auth
@@ -32,7 +32,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
-# New Google Auth Schemas
+# Google Auth Schemas
 class GoogleAuthRequest(BaseModel):
     credential: str
 
@@ -53,8 +53,33 @@ class NGOOut(BaseModel):
     class Config:
         orm_mode = True
 
+# NGO Schemas
+class NGOResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    about: Optional[str] = None
+    net_funding: float = 0
+    beneficiary: Optional[List[str]] = None
+
+    class Config:
+        orm_mode = True
+
 class NGORecommendation(BaseModel):
     ngo: NGOOut
     impact_score: float
     rank: int
     features: dict
+
+# Donate Schema
+class DonateRequest(BaseModel):
+    ngo_id: str
+    amount: float
+
+# Donor Status
+class DonorStatusResponse(BaseModel):
+    has_donated: bool
+    total_donated: float
+
+    class Config:
+        orm_mode = True

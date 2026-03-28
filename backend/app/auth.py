@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from . import schemas, models
 from .database import get_db
 
-# Use simple secrets for MVP execution
-SECRET_KEY = os.getenv("SECRET_KEY", "b3a563f8207ff036f01c4021759ea02672ece7c6b9bb7440")
+# Use secrets from environment
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 

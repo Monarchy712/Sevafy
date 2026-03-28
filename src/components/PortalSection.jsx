@@ -1,13 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PORTALS } from '../constants';
-import { useRedirect } from '../hooks/useRedirect';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import { AuthContext } from '../contexts/AuthContext';
 import styles from './PortalSection.module.css';
 
-/**
- * Inline SVG icon for the Student portal (graduation cap).
- * @returns {React.JSX.Element}
- */
 function StudentIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -18,10 +15,6 @@ function StudentIcon() {
   );
 }
 
-/**
- * Inline SVG icon for the NGO portal (network nodes).
- * @returns {React.JSX.Element}
- */
 function NgoIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -35,10 +28,6 @@ function NgoIcon() {
   );
 }
 
-/**
- * Inline SVG icon for the Donor portal (hand holding heart).
- * @returns {React.JSX.Element}
- */
 function DonorIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -52,13 +41,13 @@ function DonorIcon() {
 
 const ICONS = { student: StudentIcon, ngo: NgoIcon, donor: DonorIcon };
 
-/**
- * PortalCard — individual portal card wrapper for proper hook usage.
- *
- * @param {{ portal: object, onRedirect: Function }} props
- * @returns {React.JSX.Element}
- */
-function PortalCard({ portal, onRedirect }) {
+const ROLE_TO_DASHBOARD = {
+  DONATOR: { label: 'Donor', path: '/dashboard', iconKey: 'donor' },
+  STUDENT: { label: 'Student', path: '/dashboard', iconKey: 'student' },
+  NGO_PERSONNEL: { label: 'Partner (NGO)', path: '/dashboard', iconKey: 'ngo' },
+};
+
+function PortalCard({ portal, onClick }) {
   const ref = useScrollReveal();
   const Icon = ICONS[portal.id];
 
@@ -69,11 +58,11 @@ function PortalCard({ portal, onRedirect }) {
       role="button"
       tabIndex={0}
       aria-label={`${portal.heading} — ${portal.description}`}
-      onClick={() => onRedirect(portal.url)}
+      onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onRedirect(portal.url);
+          onClick();
         }
       }}
     >
@@ -87,14 +76,42 @@ function PortalCard({ portal, onRedirect }) {
   );
 }
 
-/**
- * PortalSection — three clickable portal cards (Student, NGO, Donor).
- * Each card redirects externally via the useRedirect hook.
- *
- * @returns {React.JSX.Element}
- */
+function DashboardCard({ user }) {
+  const ref = useScrollReveal();
+  const navigate = useNavigate();
+  const info = ROLE_TO_DASHBOARD[user.role] || ROLE_TO_DASHBOARD.DONATOR;
+  const Icon = ICONS[info.iconKey];
+
+  return (
+    <div
+      ref={ref}
+      className={`${styles.card} ${styles.dashboardCard} reveal`}
+      role="button"
+      tabIndex={0}
+      aria-label={`Go to ${info.label} Dashboard`}
+      onClick={() => navigate(info.path)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(info.path);
+        }
+      }}
+    >
+      <div className={styles.icon}>
+        <Icon />
+      </div>
+      <h3 className={styles.heading}>Go To {info.label} Dashboard</h3>
+      <p className={styles.description}>
+        Welcome back, {user.full_name.split(' ')[0]}. Your portal is ready.
+      </p>
+      <span className={styles.arrow} aria-hidden="true">→</span>
+    </div>
+  );
+}
+
 export default function PortalSection() {
-  const { redirect } = useRedirect();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleHowItWorks = () => {
     const el = document.getElementById('features');
@@ -103,11 +120,21 @@ export default function PortalSection() {
 
   return (
     <section id="portals" className={styles.section} aria-label="Portal selection grid">
-      <div className={styles.grid}>
-        {PORTALS.map((portal) => (
-          <PortalCard key={portal.id} portal={portal} onRedirect={redirect} />
-        ))}
-      </div>
+      {user ? (
+        <div className={styles.dashboardGrid}>
+          <DashboardCard user={user} />
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {PORTALS.map((portal) => (
+            <PortalCard
+              key={portal.id}
+              portal={portal}
+              onClick={() => navigate('/login')}
+            />
+          ))}
+        </div>
+      )}
       <div className={styles.ctaWrap}>
         <button
           className={styles.cta}
