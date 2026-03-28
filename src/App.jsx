@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SelectRole from './pages/SelectRole';
 import BackgroundEffect from './components/BackgroundEffect';
+import Recommendations from './pages/Recommendations';
 
 const GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
@@ -38,6 +39,7 @@ function NavBar() {
 
         {user ? (
           <div className="navbar-auth">
+            <Link to="/recommendations" className="navbar-link">AI Match</Link>
             <span className="navbar-greeting">
               {user.full_name}
             </span>
@@ -47,6 +49,7 @@ function NavBar() {
           </div>
         ) : (
           <div className="navbar-auth">
+            <Link to="/recommendations" className="navbar-link">AI Match</Link>
             <Link to="/login" className="btn btn-ghost">Log In</Link>
             <Link to="/register" className="btn btn-primary">
               Get Started
@@ -93,6 +96,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/select-role" element={<SelectRole />} />
+            <Route path="/recommendations" element={<Recommendations />} />
           </Routes>
         </Router>
       </AuthProvider>

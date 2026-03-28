@@ -12,6 +12,16 @@ class UserRole(str, enum.Enum):
     STUDENT = "STUDENT"
     NGO_PERSONNEL = "NGO_PERSONNEL"
 
+class ApplicationStatus(str, enum.Enum):
+    SUBMITTED = "SUBMITTED"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+class InstallmentPhase(int, enum.Enum):
+    NEW_ADMISSION = 0
+    MID_TERM_INSTALLMENT = 1
+
 class User(Base):
     __tablename__ = "users"
 
@@ -71,3 +81,43 @@ class DonatorProfile(Base):
 
 # For MVP, we'll keep these other tables as placeholders to finish later
 # but these user & roles are the backbone for Authentication right now.
+
+class ScholarshipScheme(Base):
+    __tablename__ = "scholarship_schemes"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ngo_id = Column(PG_UUID(as_uuid=True), ForeignKey("ngos.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    amount_per_student = Column(Numeric(14, 2), nullable=False)
+    contract_address = Column(String(66), nullable=True)
+
+class ScholarshipApplication(Base):
+    __tablename__ = "scholarship_applications"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    scheme_id = Column(PG_UUID(as_uuid=True), ForeignKey("scholarship_schemes.id"), nullable=False)
+    student_id = Column(PG_UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False)
+    status = Column(SQLEnum(ApplicationStatus), default=ApplicationStatus.SUBMITTED)
+    applied_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ScholarshipInstallment(Base):
+    __tablename__ = "scholarship_installments"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    application_id = Column(PG_UUID(as_uuid=True), ForeignKey("scholarship_applications.id"), nullable=False)
+    phase = Column(SQLEnum(InstallmentPhase), nullable=False)
+    amount = Column(Numeric(14,2), nullable=False)
+    is_disbursed = Column(Boolean, default=False)
+    tx_hash = Column(String(130), nullable=True)
+    disbursed_at = Column(DateTime(timezone=True), nullable=True)
+
+class Donation(Base):
+    __tablename__ = "donations"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    donator_id = Column(PG_UUID(as_uuid=True), ForeignKey("donator_profiles.id"), nullable=False)
+    ngo_id = Column(PG_UUID(as_uuid=True), ForeignKey("ngos.id"), nullable=False)
+    amount = Column(Numeric(16,2), nullable=False)
+    tx_hash = Column(String(130), nullable=True)
+    donated_at = Column(DateTime(timezone=True), server_default=func.now())

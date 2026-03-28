@@ -54,14 +54,14 @@
 
 /* ── Error Alert ──────────────────────────────────── */
 .errorAlert {
-  background: linear-gradient(135deg, rgba(210, 84, 59, 0.05), rgba(210, 84, 59, 0.1));
+  background: linear-gradient(135deg, rgba(47, 133, 90, 0.05), rgba(47, 133, 90, 0.1));
   color: var(--color-accent);
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius-sm);
   margin-bottom: 1.75rem;
   font-size: 0.9rem;
   font-weight: 500;
-  border: 1px solid rgba(210, 84, 59, 0.2);
+  border: 1px solid rgba(47, 133, 90, 0.2);
   animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -110,7 +110,7 @@
 .formGroup select:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgba(210, 84, 59, 0.12), inset 0 2px 4px rgba(42, 36, 33, 0.01);
+  box-shadow: 0 0 0 4px rgba(47, 133, 90, 0.12), inset 0 2px 4px rgba(42, 36, 33, 0.01);
   background: #FFF;
 }
 
@@ -126,7 +126,7 @@
   letter-spacing: 0.02em;
   border-radius: var(--radius-md);
   margin-top: 1rem;
-  box-shadow: 0 8px 24px -6px rgba(210, 84, 59, 0.4);
+  box-shadow: 0 8px 24px -6px rgba(47, 133, 90, 0.4);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -151,7 +151,7 @@
 
 .submitBtn:hover {
   background: var(--color-accent-hover);
-  box-shadow: 0 12px 32px -4px rgba(210, 84, 59, 0.5);
+  box-shadow: 0 12px 32px -4px rgba(47, 133, 90, 0.5);
   transform: translateY(-3px) scale(1.01);
 }
 
@@ -161,7 +161,7 @@
 
 .submitBtn:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 4px 12px rgba(210, 84, 59, 0.3);
+  box-shadow: 0 4px 12px rgba(47, 133, 90, 0.3);
 }
 
 .submitBtn:disabled {

@@ -51,7 +51,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(210, 84, 59, 0.08),
+    rgba(47, 133, 90, 0.08),
     transparent
   );
   transform: skewX(-20deg);
@@ -61,7 +61,7 @@
 
 .card:hover {
   transform: translateY(-12px) scale(1.02);
-  border-color: rgba(210, 84, 59, 0.3);
+  border-color: rgba(47, 133, 90, 0.3);
   background: rgba(255, 255, 255, 0.95);
   box-shadow: var(--shadow-xl);
 }
@@ -92,7 +92,7 @@
   background: var(--color-accent);
   color: #fff;
   transform: scale(1.15) rotate(-5deg);
-  box-shadow: 0 10px 20px rgba(210, 84, 59, 0.3);
+  box-shadow: 0 10px 20px rgba(47, 133, 90, 0.3);
 }
 
 .heading {
@@ -156,7 +156,7 @@
 .cta:hover {
   background: var(--color-accent);
   transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 36px rgba(210, 84, 59, 0.45);
+  box-shadow: 0 12px 36px rgba(47, 133, 90, 0.45);
 }
 
 .ctaArrow {

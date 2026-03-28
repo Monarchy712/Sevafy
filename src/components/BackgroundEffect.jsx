@@ -93,8 +93,8 @@ export default function BackgroundEffect() {
 
       {/* Floating geometric accents - subtle sage and terracotta outlines */}
       <svg className={`${styles.floatShape} ${styles.shape1}`} width="140" height="140" viewBox="0 0 140 140" fill="none">
-        <circle cx="70" cy="70" r="60" stroke="#D2543B" strokeOpacity="0.08" strokeWidth="1.5" />
-        <circle cx="70" cy="70" r="45" stroke="#D2543B" strokeOpacity="0.04" strokeWidth="1" />
+        <circle cx="70" cy="70" r="60" stroke="#2F855A" strokeOpacity="0.08" strokeWidth="1.5" />
+        <circle cx="70" cy="70" r="45" stroke="#2F855A" strokeOpacity="0.04" strokeWidth="1" />
       </svg>
       <svg className={`${styles.floatShape} ${styles.shape2}`} width="100" height="100" viewBox="0 0 100 100" fill="none">
         <rect x="15" y="15" width="70" height="70" rx="16" stroke="#8B9A84" strokeOpacity="0.1" strokeWidth="1.5" transform="rotate(15 50 50)" />

@@ -44,3 +44,17 @@ class GoogleCompleteRequest(BaseModel):
 
 class GoogleCustomRequest(BaseModel):
     access_token: str
+
+class NGOOut(BaseModel):
+    id: str  # Send UUID as string
+    name: str
+    description: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class NGORecommendation(BaseModel):
+    ngo: NGOOut
+    impact_score: float
+    rank: int
+    features: dict

@@ -51,5 +51,5 @@
   color: var(--color-accent);
   background: var(--color-accent-light);
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(210, 84, 59, 0.1);
+  box-shadow: 0 2px 8px rgba(47, 133, 90, 0.1);
 }

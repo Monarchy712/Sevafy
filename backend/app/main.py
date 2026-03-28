@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -7,6 +8,7 @@ from . import models, schemas, auth
 from .database import engine, get_db
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from .ml_service import get_top_ngos
 
 # Google Client ID from user
 GOOGLE_CLIENT_ID = "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com"
@@ -199,3 +201,33 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
         full_name=current_user.full_name,
         role=current_user.role
     )
+
+@app.get("/api/ngos/recommendations", response_model=List[schemas.NGORecommendation])
+def get_ngo_recommendations(db: Session = Depends(get_db)):
+    """
+    Returns the top 5 NGOS optimized for fair funding distribution and highest student impact.
+    Powered by the XGBoost ML model.
+    """
+    all_ngos = db.query(models.NGO).all()
+    
+    if not all_ngos:
+        return []
+    
+    top_5 = get_top_ngos(db, all_ngos)
+    
+    response = []
+    for item in top_5:
+        ngo_out = schemas.NGOOut(
+            id=str(item["ngo"].id),
+            name=item["ngo"].name,
+            description=item["ngo"].description
+        )
+        response.append(
+            schemas.NGORecommendation(
+                ngo=ngo_out,
+                impact_score=item["impact_score"],
+                rank=item["rank"],
+                features=item["features"]
+            )
+        )
+    return response

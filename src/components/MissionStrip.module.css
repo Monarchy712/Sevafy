@@ -17,7 +17,7 @@
   left: -10%;
   width: 50%;
   height: 220%;
-  background: radial-gradient(circle, rgba(210, 84, 59, 0.15) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(47, 133, 90, 0.15) 0%, transparent 60%);
   pointer-events: none;
   animation: pulseHalo 8s infinite alternate ease-in-out;
 }

@@ -6,9 +6,9 @@
   --color-fg:       #2A2421;   /* Rich Charcoal/Espresso */
   
   /* Accents */
-  --color-accent:   #D2543B;   /* Terracotta Rust */
-  --color-accent-hover: #AF402B;
-  --color-accent-light: #FBEFEE;
+  --color-accent:   #2F855A;   /* Terracotta Rust */
+  --color-accent-hover: #276749;
+  --color-accent-light: #E6FFFA;
   
   --color-secondary: #8B9A84;  /* Elegant Sage */
   --color-muted:    #766A65;   /* Warm Taupe */
@@ -41,8 +41,8 @@
   --shadow-sm:  0 2px 4px rgba(42, 36, 33, 0.04), 0 1px 2px rgba(42, 36, 33, 0.06);
   --shadow-md:  0 6px 12px -2px rgba(42, 36, 33, 0.07), 0 4px 6px -2px rgba(42, 36, 33, 0.04);
   --shadow-lg:  0 14px 30px -4px rgba(42, 36, 33, 0.08), 0 6px 14px -6px rgba(42, 36, 33, 0.05);
-  --shadow-xl:  0 24px 60px -8px rgba(210, 84, 59, 0.15), 0 12px 24px -10px rgba(42, 36, 33, 0.08);
-  --shadow-glow: 0 0 50px rgba(210, 84, 59, 0.18);
+  --shadow-xl:  0 24px 60px -8px rgba(47, 133, 90, 0.15), 0 12px 24px -10px rgba(42, 36, 33, 0.08);
+  --shadow-glow: 0 0 50px rgba(47, 133, 90, 0.18);
 }
 
 /* ── Reset ────────────────────────────────────────── */
@@ -136,9 +136,9 @@ button {
 }
 
 @keyframes pulseHalo {
-  0% { box-shadow: 0 0 0 0 rgba(210, 84, 59, 0.4); }
-  70% { box-shadow: 0 0 0 20px rgba(210, 84, 59, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(210, 84, 59, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(47, 133, 90, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(47, 133, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(47, 133, 90, 0); }
 }
 
 @keyframes gradientPan {
