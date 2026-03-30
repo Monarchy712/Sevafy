@@ -17,18 +17,24 @@ export default function HeroSection() {
         {text1.split(' ').map((word, i) => {
           totalIndex++;
           return (
-            <span key={`w1-${i}`} className={styles.word} style={{ animationDelay: `${100 + totalIndex * 80}ms` }}>
-              {word}
-            </span>
+            <React.Fragment key={`w1-${i}`}>
+              <span className={styles.word} style={{ animationDelay: `${100 + totalIndex * 80}ms` }}>
+                {word}
+              </span>
+              {' '}
+            </React.Fragment>
           );
         })}
         <br />
         {text2.split(' ').map((word, i) => {
           totalIndex++;
           return (
-            <span key={`w2-${i}`} className={styles.word} style={{ animationDelay: `${100 + totalIndex * 80}ms` }}>
-              {word}
-            </span>
+            <React.Fragment key={`w2-${i}`}>
+              <span className={styles.word} style={{ animationDelay: `${100 + totalIndex * 80}ms` }}>
+                {word}
+              </span>
+              {' '}
+            </React.Fragment>
           );
         })}
       </>

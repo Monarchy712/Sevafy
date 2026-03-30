@@ -80,13 +80,13 @@ Table ngos {
   wallet_address       varchar(66)  [default: null]
   
   created_at           timestamptz  [default: `now()`]
+  scholarships_approved integer      [default: 0, note: 'Number of scholarships approved by this NGO']
 }
 
 Table ngo_personnel {
   id           uuid [pk, default: `uuid_generate_v4()`]
   user_id      uuid [not null, ref: > users.id]
   ngo_id       uuid [not null, ref: > ngos.id]
-  designation  varchar(100)
 }
 
 Table student_profiles {
@@ -122,6 +122,8 @@ Table scholarship_schemes {
   description         text
   amount_per_student  decimal(14,2) [not null]
   contract_address    varchar(66)   [default: null]
+  scheme_beneficiary  varchar(255)
+  deadline            timestamptz
 }
 
 Table scholarship_applications {

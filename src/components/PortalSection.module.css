@@ -4,6 +4,7 @@
   padding: 0 var(--space-lg) var(--space-2xl);
   max-width: 1160px;
   margin: 0 auto;
+  scroll-margin-top: 100px;
 }
 
 .sectionTitle {

@@ -257,6 +257,9 @@ export default function DonorDashboard() {
                 Securing your donation on the blockchain ledger. 
                 This usually takes less than 7 seconds on the testnet.
               </p>
+              <div className={styles.progressContainer}>
+                <div className={styles.progressBar}></div>
+              </div>
             </div>
           </div>
         )}
@@ -298,8 +301,8 @@ export default function DonorDashboard() {
 
           {/* ── Thank You Overlay ───────────────────── */}
           {showThankYou && (
-            <div className={styles.overlay}>
-              <div className={styles.thankYouCard}>
+            <div className={styles.thankYouOverlay}>
+              <div className={styles.thankYouContent}>
                 <div className={styles.thankYouIcon}>❤️</div>
                 <h2 className={styles.thankYouHeading}>Thank You for Donating!</h2>
                 <p className={styles.thankYouText}>Your contribution has been successfully recorded on the blockchain.</p>

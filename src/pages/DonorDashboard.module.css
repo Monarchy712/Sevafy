@@ -608,20 +608,121 @@
   position: fixed;
   inset: 0;
   background: rgba(42, 36, 33, 0.4);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 .thankYouContent {
   background: white;
-  padding: 3rem;
+  padding: 3.5rem;
   border-radius: var(--radius-xl);
   text-align: center;
-  max-width: 400px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  max-width: 440px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.25);
+  animation: modalScaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.thankYouIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.thankYouHeading {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-fg);
+  margin-bottom: 0.5rem;
+}
+
+.thankYouText {
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ── Recording on Chain Overlay ────────────── */
+
+.recordingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 36, 33, 0.45);
+  backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.recordingContent {
+  background: white;
+  padding: 3.5rem;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  max-width: 440px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.25);
+  animation: modalScaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.recordingTitle {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-fg);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.recordingSubtitle {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.progressContainer {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-alt);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 4px;
+  animation: fillProgress 7s ease-in-out forwards;
+}
+
+@keyframes fillProgress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* ── Blockchain Cube Loader ────────────────── */
