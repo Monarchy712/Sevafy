@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime, timezone
 import asyncio
+import uuid
 
 import os
 from dotenv import load_dotenv
@@ -645,24 +646,52 @@ def get_ledger(db: Session = Depends(get_db)):
         count=len(transactions)
     )
 
+# ── Student Fund Endpoints ───────────────────────────────────
+
+@app.get("/api/student/funds-received")
+def get_student_funds_received(
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    """Returns total funds received by a student from blockchain."""
+    if current_user.role != models.UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can access this")
+    
+    try:
+        payments = blockchain.get_uid_payment_data(
+            current_user.blockchain_uid, "STUDENT", "R"
+        )
+        total = sum(int(p["amount"]) for p in payments)
+    except Exception as e:
+        print(f"Error fetching student blockchain data: {e}")
+        total = 0
+    
+    return {"total_received": total}
+
 
 # ── Scholarship Endpoints ────────────────────────────────────
 
 @app.get("/api/scholarships", response_model=List[schemas.ScholarshipSchemeResponse])
 def list_scholarships(db: Session = Depends(get_db)):
     """Returns all available scholarship schemes."""
-    schemes = db.query(models.ScholarshipScheme).all()
-    return [
-        schemas.ScholarshipSchemeResponse(
+    schemes = db.query(models.ScholarshipScheme, models.NGO.name.label("ngo_name")).join(
+        models.NGO, models.ScholarshipScheme.ngo_id == models.NGO.id
+    ).all()
+    
+    result = []
+    for s_obj, ngo_name in schemes:
+        s = s_obj
+        result.append(schemas.ScholarshipSchemeResponse(
             id=str(s.id),
             ngo_id=str(s.ngo_id),
+            ngo_name=ngo_name,
             title=s.title,
             description=s.description,
             amount_per_student=float(s.amount_per_student),
-            contract_address=s.contract_address
-        )
-        for s in schemes
-    ]
+            contract_address=s.contract_address,
+            scheme_beneficiary=s.scheme_beneficiary,
+            deadline=s.deadline.isoformat() if s.deadline else None
+        ))
+    return result
 
 @app.post("/api/scholarships/apply", response_model=schemas.ScholarshipApplicationResponse)
 def apply_for_scholarship(
@@ -682,16 +711,17 @@ def apply_for_scholarship(
 
     # Check if already applied
     existing = db.query(models.ScholarshipApplication).filter(
-        models.ScholarshipApplication.scheme_id == uuid_module.UUID(request.scheme_id),
+        models.ScholarshipApplication.scheme_id == uuid.UUID(request.scheme_id),
         models.ScholarshipApplication.student_id == profile.id
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Already applied to this scheme")
 
     new_app = models.ScholarshipApplication(
-        scheme_id=uuid_module.UUID(request.scheme_id),
+        scheme_id=uuid.UUID(request.scheme_id),
         student_id=profile.id,
-        status=models.ApplicationStatus.SUBMITTED
+        status=models.ApplicationStatus.SUBMITTED,
+        documents=request.documents
     )
     db.add(new_app)
     db.commit()
@@ -702,7 +732,8 @@ def apply_for_scholarship(
         scheme_id=str(new_app.scheme_id),
         student_id=str(new_app.student_id),
         status=new_app.status.value,
-        applied_at=new_app.applied_at.isoformat()
+        applied_at=new_app.applied_at.isoformat(),
+        documents=new_app.documents
     )
 
 

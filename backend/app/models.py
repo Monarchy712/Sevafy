@@ -109,6 +109,9 @@ class StudentProfile(Base):
     bank_ifsc_code = Column(Text, nullable=True)
     wallet_address = Column(String(66), nullable=True)
 
+    # Blockchain UID — sync with user.blockchain_uid (or set manually if needed)
+    blockchain_uid = Column(Integer, unique=True, nullable=True)
+
     user = relationship("User", back_populates="student_profile")
 
 class DonatorProfile(Base):
@@ -134,6 +137,8 @@ class ScholarshipScheme(Base):
     description = Column(Text, nullable=True)
     amount_per_student = Column(Numeric(14, 2), nullable=False)
     contract_address = Column(String(66), nullable=True)
+    scheme_beneficiary = Column(String(255), nullable=True)
+    deadline = Column(DateTime(timezone=True), nullable=True)
 
 class ScholarshipApplication(Base):
     __tablename__ = "scholarship_applications"
@@ -143,6 +148,7 @@ class ScholarshipApplication(Base):
     student_id = Column(PG_UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False)
     status = Column(SQLEnum(ApplicationStatus), default=ApplicationStatus.SUBMITTED)
     applied_at = Column(DateTime(timezone=True), server_default=func.now())
+    documents = Column(JSON, nullable=True) # Map of {doc_name: status/link}
 
     # GenAI verification fields
     verified_by_genai = Column(Boolean, nullable=True, default=None)

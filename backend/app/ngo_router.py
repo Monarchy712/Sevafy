@@ -59,11 +59,13 @@ class ScholarshipDetailResponse(BaseModel):
     applied_at: str
     verified_by_genai: Optional[bool]
     genai_result: Optional[dict]
+    documents: Optional[dict]
     installments: List[InstallmentDetail]
 
 class SuccessResponse(BaseModel):
     success: bool
     message: str
+    tx_hash: Optional[str] = None
 
 # ── Phase Name Map (mirrors InstallmentPhase enum) ────────────────
 PHASE_NAMES = {
@@ -201,14 +203,25 @@ def get_ngo_stats_live(current_user, db):
     net_funding = sum(float(tx["amount"] or 0) for tx in received)
     total_disbursed = sum(float(tx["amount"] or 0) for tx in disbursed)
     
-    # Scholarships count = count of unique student UIDs in the "D" list
-    student_uids = {tx["receiver_uid"] for tx in disbursed}
-    scholarships_count = len(student_uids)
+    # 3. Calculate Scholarships Approved count
+    # Source A: Unique student UIDs in the on-chain "D" list
+    onchain_student_uids = {tx["receiver_uid"] for tx in disbursed}
+    
+    # Source B: APPROVED applications in DB (for immediate updates before indexing)
+    schemes = db.query(models.ScholarshipScheme).filter(models.ScholarshipScheme.ngo_id == ngo.id).all()
+    scheme_ids = [s.id for s in schemes]
+    db_approved_count = db.query(models.ScholarshipApplication).filter(
+        models.ScholarshipApplication.scheme_id.in_(scheme_ids),
+        models.ScholarshipApplication.status == models.ApplicationStatus.APPROVED
+    ).count() if scheme_ids else 0
+    
+    # Use max to ensure we capture both legacy on-chain data and new DB approvals
+    scholarships_count = max(len(onchain_student_uids), db_approved_count)
 
-    # 3. Handle Avg. Amount (Only if disbursements exist, otherwise 0 per user request)
+    # 4. Handle Avg. Amount: total disbursed / count of approved scholarships
     avg_per_student = 0.0
-    if total_disbursed > 0 and len(disbursed) > 0:
-        avg_per_student = total_disbursed / len(disbursed)
+    if scholarships_count > 0:
+        avg_per_student = total_disbursed / scholarships_count
 
     utilization = total_disbursed / net_funding if net_funding > 0 else 0.0
 
@@ -301,66 +314,85 @@ def get_ongoing_scholarships(
         print(f"Error fetching chain disbursements: {e}")
         onchain_disbursed = []
 
-    # 2. Fetch pending applications from DB
+    # 2. Fetch all schemes for this NGO
     schemes = db.query(models.ScholarshipScheme).filter(models.ScholarshipScheme.ngo_id == ngo.id).all()
     scheme_ids = [s.id for s in schemes]
-    pending_apps = db.query(models.ScholarshipApplication).filter(
-        models.ScholarshipApplication.scheme_id.in_(scheme_ids),
-        models.ScholarshipApplication.status == models.ApplicationStatus.SUBMITTED
-    ).all() if scheme_ids else []
 
-    result = []
-    
-    # Add pending apps first (so they are at the top for approval)
-    for app in pending_apps:
-        # Try to find student UID
-        student_profile = db.query(models.StudentProfile).filter(models.StudentProfile.id == app.student_id).first()
-        student_uid = student_profile.blockchain_uid if student_profile else 0
-        
-        result.append(ScholarshipSummary(
-            donation_no="PENDING",
-            sender_uid=f"{ngo.name}({ngo.blockchain_uid})",
-            receiver_uid=f"Student({student_uid})",
-            amount=float(app.amount_per_student_avg) if hasattr(app, 'amount_per_student_avg') else 0.0,
-            timestamp=app.applied_at.strftime("%d %B %Y"),
-            purpose="Scholarship Approval",
-            application_id=str(app.id),
-            status="SUBMITTED"
-        ))
+    # Pre-process on-chain data and match to applications
+    disbursed_results = []
+    seen_application_ids = set()
+    student_uid_map = {} # Cache for student UID -> app_id
 
-    # Add on-chain disbursed records
-    student_uid_map = {} # Cache
-    
-    for d in onchain_disbursed:
+    for d in onchain_disbursed[::-1]: # Latest on-chain first
         target_uid = d['receiver_uid']
-        app_id = None
+        app_id_found = None
         
         if target_uid not in student_uid_map:
             student_profile = db.query(models.StudentProfile).filter(models.StudentProfile.blockchain_uid == target_uid).first()
             if student_profile:
-                # Find application for this student in one of this NGO's schemes
+                # Find matching application — use student_id AND the donation_id_used for accuracy
                 app = db.query(models.ScholarshipApplication).filter(
                     models.ScholarshipApplication.student_id == student_profile.id,
-                    models.ScholarshipApplication.scheme_id.in_(scheme_ids)
+                    models.ScholarshipApplication.scheme_id.in_(scheme_ids),
+                    models.ScholarshipApplication.donation_id_used == d['donation_id']
                 ).first()
+                # Fallback to just student/scheme if donation_id_used is missing (old records)
+                if not app:
+                    app = db.query(models.ScholarshipApplication).filter(
+                        models.ScholarshipApplication.student_id == student_profile.id,
+                        models.ScholarshipApplication.scheme_id.in_(scheme_ids)
+                    ).first()
                 if app:
-                    app_id = str(app.id)
-            student_uid_map[target_uid] = app_id
+                    app_id_found = str(app.id)
+                    seen_application_ids.add(app_id_found)
+            student_uid_map[target_uid] = app_id_found
         else:
-            app_id = student_uid_map[target_uid]
+            app_id_found = student_uid_map[target_uid]
+            if app_id_found:
+                seen_application_ids.add(app_id_found)
 
-        result.append(ScholarshipSummary(
+        disbursed_results.append(ScholarshipSummary(
             donation_no=f"#{d['donation_id']}",
             sender_uid=f"{ngo.name}", # Show NGO Name per request
             receiver_uid=str(d['receiver_uid']),
             amount=float(d['amount']),
             timestamp=format_ts(d['timestamp']),
             purpose=PHASE_NAMES.get(d['purpose'], f"Phase {d['purpose']}"),
-            application_id=app_id,
+            application_id=app_id_found,
             status="DISBURSED"
         ))
 
-    return result
+    # 3. Fetch pending/approved applications from DB
+    pending_apps = db.query(models.ScholarshipApplication).filter(
+        models.ScholarshipApplication.scheme_id.in_(scheme_ids),
+        models.ScholarshipApplication.status.in_([models.ApplicationStatus.SUBMITTED, models.ApplicationStatus.APPROVED])
+    ).all() if scheme_ids else []
+
+    app_results = []
+    for app in pending_apps:
+        # CRITICAL FIX: If the application is already showing up on-chain,
+        # don't show the duplicate "PROCESSING" row.
+        if app.status == models.ApplicationStatus.APPROVED and str(app.id) in seen_application_ids:
+            continue
+
+        student_profile = db.query(models.StudentProfile).filter(models.StudentProfile.id == app.student_id).first()
+        student_uid = student_profile.blockchain_uid if student_profile else 0
+        scheme = db.query(models.ScholarshipScheme).filter(models.ScholarshipScheme.id == app.scheme_id).first()
+        amount = float(scheme.amount_per_student) if scheme else 0.0
+        
+        app_results.append(ScholarshipSummary(
+            donation_no="PENDING" if app.status == models.ApplicationStatus.SUBMITTED else "PROCESSING",
+            sender_uid=f"{ngo.name}({ngo.blockchain_uid})",
+            receiver_uid=f"Student({student_uid})",
+            amount=amount,
+            timestamp=app.applied_at.strftime("%d %B %Y"),
+            purpose="Scholarship Approval",
+            application_id=str(app.id),
+            status=app.status.value
+        ))
+
+    # Combine: Pending at top, then on-chain history
+    return app_results + disbursed_results
 
 
 @router.post("/scholarships/{application_id}/approve", response_model=SuccessResponse)
@@ -382,6 +414,9 @@ def approve_scholarship(
     application = db.query(models.ScholarshipApplication).filter(models.ScholarshipApplication.id == app_id).first()
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
+    
+    if application.status != models.ApplicationStatus.SUBMITTED:
+        raise HTTPException(status_code=400, detail="Application already processed")
         
     # Verify NGO ownership
     scheme = db.query(models.ScholarshipScheme).filter(
@@ -390,19 +425,131 @@ def approve_scholarship(
     ).first()
     if not scheme:
         raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    scholarship_amount = int(scheme.amount_per_student)
+    
+    # ── Auto-detect purpose from scholarship text ──
+    text = ((scheme.title or "") + " " + (scheme.description or "") + " " + (scheme.scheme_beneficiary or "")).lower()
+    
+    if any(kw in text for kw in ["device", "laptop", "tablet", "tech", "computer"]):
+        purpose = 9   # DEVICE_OR_TECH_SUPPORT
+    elif any(kw in text for kw in ["merit", "excellence", "academic", "topper", "performance"]):
+        purpose = 10  # PERFORMANCE_INCENTIVE
+    elif any(kw in text for kw in ["hostel", "living", "housing", "accommodation"]):
+        purpose = 5   # HOSTEL_OR_LIVING_EXPENSE
+    elif any(kw in text for kw in ["book", "material", "supply", "stationery"]):
+        purpose = 4   # STUDY_MATERIAL_SUPPORT
+    elif any(kw in text for kw in ["skill", "certification", "vocational", "training"]):
+        purpose = 8   # SKILL_OR_CERTIFICATION_SUPPORT
+    elif any(kw in text for kw in ["tuition", "fee", "admission"]):
+        purpose = 2   # ACADEMIC_RENEWAL (tuition installment)
+    elif any(kw in text for kw in ["dropout", "recovery", "reentry"]):
+        purpose = 7   # DROPOUT_RECOVERY_SUPPORT
+    elif any(kw in text for kw in ["emergency", "crisis", "urgent"]):
+        purpose = 6   # EMERGENCY_SUPPORT
+    elif any(kw in text for kw in ["special", "minority", "differently abled", "tribal"]):
+        purpose = 11  # SPECIAL_CATEGORY_SUPPORT
+    else:
+        purpose = 0   # NEW_ADMISSION (default)
+    
+    # ── Find donations with remaining funds (split-aware) ──
+    donations = db.query(models.Donation).filter(
+        models.Donation.ngo_id == ngo.id,
+        models.Donation.confirmed == True,
+        models.Donation.remaining_amount > 0
+    ).order_by(models.Donation.donated_at.asc()).all()
+    
+    # Calculate total available funds across all donations
+    total_available = sum(int(d.remaining_amount) for d in donations)
+    
+    if total_available < scholarship_amount:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient funds. Available: ₹{total_available:,}, Required: ₹{scholarship_amount:,}. Please wait for more donations."
+        )
+    
+    # ── Get student blockchain UID ──
+    student_profile = db.query(models.StudentProfile).filter(
+        models.StudentProfile.id == application.student_id
+    ).first()
+    student_user = db.query(models.User).filter(
+        models.User.id == student_profile.user_id
+    ).first() if student_profile else None
+    
+    if not student_user:
+        raise HTTPException(status_code=404, detail="Student user not found")
+    
+    student_uid = student_user.blockchain_uid
+    
+    # ── Distribute across donations (split if needed) ──
+    remaining_to_fund = scholarship_amount
+    tx_hashes = []
+    
+    for donation in donations:
+        if remaining_to_fund <= 0:
+            break
         
+        avail = int(donation.remaining_amount)
+        chunk = min(avail, remaining_to_fund)
+        
+        # Verify on-chain remaining funds (smart contract is source of truth)
+        try:
+            onchain_remaining = blockchain.get_remaining_funds(donation.blockchain_donation_id)
+            if onchain_remaining < chunk:
+                chunk = onchain_remaining
+                if chunk <= 0:
+                    continue
+        except Exception as e:
+            print(f"Warning: Could not verify on-chain funds for donation {donation.blockchain_donation_id}: {e}")
+        
+        # Call blockchain fundTransfer
+        try:
+            result = blockchain.call_fund_transfer(
+                donation_id=donation.blockchain_donation_id,
+                ngo_uid=ngo.blockchain_uid,
+                student_uid=student_uid,
+                amount=chunk,
+                purpose=purpose,
+            )
+            tx_hash = result["tx_hash"]
+            tx_hashes.append(tx_hash)
+        except Exception as e:
+            print(f"Blockchain transfer failed for donation {donation.blockchain_donation_id}: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Blockchain transfer failed: {str(e)}"
+            )
+        
+        # Update DB donation remaining amount
+        donation.remaining_amount = donation.remaining_amount - chunk
+        
+        # Create FundTransferRecord
+        transfer_record = models.FundTransferRecord(
+            donation_id=donation.id,
+            blockchain_donation_id=donation.blockchain_donation_id,
+            ngo_blockchain_uid=ngo.blockchain_uid,
+            student_blockchain_uid=student_uid,
+            amount=chunk,
+            purpose=purpose,
+            tx_hash=tx_hash,
+            confirmed=True,
+            confirmed_at=func.now(),
+        )
+        db.add(transfer_record)
+        
+        remaining_to_fund -= chunk
+    
+    # ── Update application status ──
     application.status = models.ApplicationStatus.APPROVED
+    application.donation_id_used = donations[0].blockchain_donation_id if donations else None
     db.commit()
     
-    # Record verification on-chain
-    student_profile = db.query(models.StudentProfile).filter(models.StudentProfile.id == application.student_id).first()
-    if student_profile and student_profile.blockchain_uid:
-        try:
-            blockchain.call_record_verification(student_profile.blockchain_uid, "NGO_APPROVAL", True)
-        except Exception as e:
-            print(f"Failed to record on-chain verification: {e}")
-            
-    return SuccessResponse(success=True, message="Scholarship approved successfully")
+    final_tx = tx_hashes[-1] if tx_hashes else None
+    return SuccessResponse(
+        success=True,
+        message=f"Scholarship approved and ₹{scholarship_amount:,} transferred to student on-chain.",
+        tx_hash=final_tx,
+    )
 
 
 @router.get("/scholarships/{application_id}", response_model=ScholarshipDetailResponse)
@@ -489,5 +636,6 @@ def get_scholarship_detail(
         applied_at=application.applied_at.isoformat(),
         verified_by_genai=application.verified_by_genai,
         genai_result=application.genai_result,
+        documents=application.documents,
         installments=installments_out,
     )

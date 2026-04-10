@@ -14,34 +14,6 @@ const TIER_CONFIG = {
   Emerging: { color: '#2F855A', bg: 'rgba(47,133,90,0.1)',  icon: '🌱' },
 };
 
-// ── Dummy data for showcase (used when API returns nothing) ───────
-const DUMMY_STATS = {
-  ngo_name: "Sunrise Education Foundation",
-  blockchain_uid: 42,
-  net_funding: 2750000,
-  total_disbursed: 1870000,
-  scholarships_count: 38,
-  amount_per_student_avg: 49200,
-  utilization_rate: 0.68,
-  impact_rating: 3.91,
-  impact_label: "Gold",
-};
-
-const DUMMY_DONATIONS = [
-  { donation_id: "d1", donor_name: "Priya", amount: 50000, donated_at: "2026-03-26T14:32:00Z", confirmed: true, tx_hash: "0xabc123" },
-  { donation_id: "d2", donor_name: "Arjun", amount: 120000, donated_at: "2026-03-24T09:10:00Z", confirmed: true, tx_hash: "0xdef456" },
-  { donation_id: "d3", donor_name: "Meera", amount: 25000, donated_at: "2026-03-21T17:55:00Z", confirmed: false, tx_hash: null },
-  { donation_id: "d4", donor_name: "Rahul", amount: 75000, donated_at: "2026-03-18T11:12:00Z", confirmed: true, tx_hash: "0x789xyz" },
-  { donation_id: "d5", donor_name: "Sneha", amount: 30000, donated_at: "2026-03-15T08:00:00Z", confirmed: true, tx_hash: "0xaaa111" },
-];
-
-const DUMMY_SCHOLARSHIPS = [
-  { application_id: "a1", student_name: "Kavya Reddy", scheme_title: "STEM Excellence", amount_per_student: 48000, status: "APPROVED", applied_at: "2026-01-10T10:00:00Z", current_phase: 3, phases_completed: 4, verified_by_genai: true },
-  { application_id: "a2", student_name: "Mohammed Zaid", scheme_title: "Rural Uplift Program", amount_per_student: 36000, status: "APPROVED", applied_at: "2026-02-03T09:30:00Z", current_phase: 1, phases_completed: 2, verified_by_genai: true },
-  { application_id: "a3", student_name: "Lakshmi Devi", scheme_title: "Women in Tech", amount_per_student: 60000, status: "UNDER_REVIEW", applied_at: "2026-03-01T15:20:00Z", current_phase: null, phases_completed: 0, verified_by_genai: null },
-  { application_id: "a4", student_name: "Aditya Kumar", scheme_title: "STEM Excellence", amount_per_student: 48000, status: "APPROVED", applied_at: "2026-01-22T12:00:00Z", current_phase: 7, phases_completed: 8, verified_by_genai: true },
-];
-
 // ── Utility: format currency ──────────────────────────────────────
 const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -53,6 +25,8 @@ function StatusBadge({ status }) {
     SUBMITTED: { label: 'Submitted', cls: styles.badgeSubmitted },
     UNDER_REVIEW: { label: 'Under Review', cls: styles.badgeReview },
     REJECTED: { label: 'Rejected', cls: styles.badgeRejected },
+    PROCESSING: { label: 'Processing...', cls: styles.badgeProcessing },
+    DISBURSED: { label: 'Paid Out', cls: styles.badgeDisbursed },
   };
   const cfg = map[status] || { label: status, cls: styles.badgeSubmitted };
   return <span className={`${styles.badge} ${cfg.cls}`}>{cfg.label}</span>;
@@ -115,8 +89,9 @@ export default function NGODashboard() {
   const [scholarships, setScholarships] = useState([]);
   const [selectedApp, setSelectedApp] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [activeTab, setActiveTab] = useState('donations'); // 'donations' | 'scholarships'
+  const [activeTab, setActiveTab] = useState('donations');
   const [approving, setApproving] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
   const handleApprove = async (appId) => {
     setApproving(appId);
@@ -133,7 +108,21 @@ export default function NGODashboard() {
       setScholarships(scholRes.data);
     } catch (err) {
       console.error("Approval failed", err);
-      alert("Failed to approve scholarship. Please try again.");
+      const detail = err.response?.data?.detail || "Failed to approve scholarship. Please try again.";
+      alert(detail);
+      // Still refresh data to show current state
+      try {
+        const [statsRes, donationsRes, scholRes] = await Promise.all([
+          api.get('/ngo/stats'),
+          api.get('/ngo/donations'),
+          api.get('/ngo/scholarships'),
+        ]);
+        setStats(statsRes.data);
+        setDonations(donationsRes.data);
+        setScholarships(scholRes.data);
+      } catch (refreshErr) {
+        console.warn('Could not refresh data after approval request — data may be slightly stale.');
+      }
     } finally {
       setApproving(null);
     }
@@ -166,11 +155,8 @@ export default function NGODashboard() {
         setDonations(donationsRes.data);
         setScholarships(scholRes.data);
       } catch (err) {
-        console.warn('Live API unavailable — using demo data.', err);
-        // Use dummy data for integration demo
-        setStats(DUMMY_STATS);
-        setDonations(DUMMY_DONATIONS);
-        setScholarships(DUMMY_SCHOLARSHIPS);
+        console.error('Failed to load NGO dashboard data:', err);
+        setFetchError(err.response?.data?.detail || 'Failed to load dashboard data. Please refresh.');
       } finally {
         setLoadingStats(false);
       }
@@ -188,7 +174,19 @@ export default function NGODashboard() {
     );
   }
 
+  if (fetchError) {
+    return (
+      <div className={styles.loadingScreen}>
+        <p style={{ color: '#D32F2F', fontWeight: 'bold', fontSize: '1.2rem' }}>⚠ {fetchError}</p>
+        <button className={styles.backBtn} onClick={() => window.location.reload()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   if (!stats) return null;
+
 
   const tier = TIER_CONFIG[stats.impact_label] || TIER_CONFIG.Emerging;
 
@@ -315,9 +313,17 @@ export default function NGODashboard() {
                         {approving === s.application_id ? 'Wait...' : 'Approve'}
                       </button>
                     </div>
+                  ) : s.status === 'APPROVED' ? (
+                    <div className={styles.processingAction}>
+                      <span className={styles.pulseDot} />
+                      Processing Payout...
+                    </div>
                   ) : (
                     <div className={styles.disbursedAction}>
-                      {s.purpose}
+                      <div className={styles.disbursedMain}>
+                        <span className={styles.checkIcon}>✔</span>
+                        {s.purpose}
+                      </div>
                       {s.application_id && <span className={styles.viewBadge}>Details →</span>}
                     </div>
                   )}

@@ -14,6 +14,14 @@ export default function StudentDashboard() {
   const [scholarships, setScholarships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Modal State
+  const [applyingScholarship, setApplyingScholarship] = useState(null);
+  const [requiredDocs, setRequiredDocs] = useState([]);
+  const [selectedDocs, setSelectedDocs] = useState({});
+
+  // Fund counter
+  const [totalReceived, setTotalReceived] = useState(0);
 
   // Fetch real scholarships from backend
   useEffect(() => {
@@ -34,6 +42,20 @@ export default function StudentDashboard() {
     }
   }, [user]);
 
+  // Fetch total funds received from blockchain
+  useEffect(() => {
+    if (!user) return;
+    const fetchFunds = async () => {
+      try {
+        const res = await api.get('/student/funds-received');
+        setTotalReceived(res.data.total_received || 0);
+      } catch (e) {
+        console.warn('Could not fetch funds:', e);
+      }
+    };
+    fetchFunds();
+  }, [user]);
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -49,10 +71,36 @@ export default function StudentDashboard() {
     setSelectedPurpose('');
   };
 
-  const handleApply = async (schemeId) => {
+  const handleApplyClick = (scholar) => {
+    // Context-aware document suggestions
+    const docs = ["Student ID", "Admission Letter"];
+    const text = (scholar.title + " " + scholar.description).toLowerCase();
+    
+    if (text.includes("engineer") || text.includes("stem") || text.includes("tech")) {
+      docs.push("Entrance Rank Card");
+    }
+    if (text.includes("poor") || text.includes("income") || text.includes("underserved")) {
+      docs.push("Income Certificate");
+    }
+    if (text.includes("academic") || text.includes("merit") || text.includes("scholar")) {
+      docs.push("Previous Year Marksheet");
+    }
+
+    setRequiredDocs(docs);
+    setApplyingScholarship(scholar);
+    setSelectedDocs({});
+  };
+
+  const handleApplyFinal = async () => {
+    if (!applyingScholarship) return;
+    
     try {
-      await api.post('/scholarships/apply', { scheme_id: schemeId });
+      await api.post('/scholarships/apply', { 
+        scheme_id: applyingScholarship.id,
+        documents: selectedDocs 
+      });
       alert("Application submitted successfully!");
+      setApplyingScholarship(null);
     } catch (err) {
       console.error("Application error:", err);
       alert(err.response?.data?.detail || "Failed to submit application.");
@@ -85,6 +133,12 @@ export default function StudentDashboard() {
         )}
       </header>
 
+      {user && (
+        <div className={styles.fundBadgeRow}>
+          💰 Total Fund Received: ₹{totalReceived.toLocaleString('en-IN')}
+        </div>
+      )}
+
       <main>
         {!user ? (
           <div className={styles.guestHero}>
@@ -113,6 +167,11 @@ export default function StudentDashboard() {
                   <div key={scholar.id} className={styles.card}>
                     <div className={styles.cardHeader}>
                       <strong>{scholar.title}</strong>
+                      {scholar.ngo_name && (
+                        <div style={{ fontSize: '14px', color: '#666', fontWeight: 'bold', marginTop: '4px' }}>
+                          By: {scholar.ngo_name}
+                        </div>
+                      )}
                     </div>
                     <div className={styles.cardBody}>
                       <div style={{ marginBottom: '8px' }}>{scholar.description}</div>
@@ -120,7 +179,7 @@ export default function StudentDashboard() {
                     </div>
                     <button 
                       className={styles.actionBtn}
-                      onClick={() => handleApply(scholar.id)}
+                      onClick={() => handleApplyClick(scholar)}
                     >
                       Apply Now
                     </button>
@@ -180,6 +239,50 @@ export default function StudentDashboard() {
           Network: EDGE | Size: 12KB | Render: 4ms
         </div>
       </footer>
+
+      {/* ── Application Modal ── */}
+      {applyingScholarship && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <header className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Apply: {applyingScholarship.title}</h3>
+            </header>
+            <div className={styles.modalBody}>
+              <p>To process your application for this <strong>{applyingScholarship.scheme_beneficiary}</strong> grant, please confirm you have the following documents ready:</p>
+              
+              <ul className={styles.checklist}>
+                {requiredDocs.map(doc => (
+                  <li key={doc} className={styles.checkItem}>
+                    <input 
+                      type="checkbox" 
+                      id={doc} 
+                      onChange={(e) => setSelectedDocs(prev => ({...prev, [doc]: e.target.checked ? "READY" : "MISSING"}))}
+                    />
+                    <label htmlFor={doc}>{doc}</label>
+                  </li>
+                ))}
+              </ul>
+              
+              <p style={{fontSize: '14px', color: '#666'}}>* Digital copies will be required for AI verification in the next step.</p>
+            </div>
+            <footer className={styles.modalFooter}>
+              <button 
+                className={styles.secondaryBtn} 
+                onClick={() => setApplyingScholarship(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.actionBtn} 
+                style={{flex: 2}}
+                onClick={handleApplyFinal}
+              >
+                Submit Application
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

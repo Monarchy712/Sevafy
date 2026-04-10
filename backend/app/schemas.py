@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict
 from .models import UserRole
 
 # ── Auth Schemas ──────────────────────────────────────────
@@ -174,16 +174,20 @@ class ApproveStudentResponse(BaseModel):
 class ScholarshipSchemeResponse(BaseModel):
     id: str
     ngo_id: str
+    ngo_name: Optional[str] = None
     title: str
     description: Optional[str] = None
     amount_per_student: float
     contract_address: Optional[str] = None
+    scheme_beneficiary: Optional[str] = None
+    deadline: Optional[str] = None
 
     class Config:
         orm_mode = True
 
 class ScholarshipApplicationCreate(BaseModel):
     scheme_id: str
+    documents: Optional[Dict[str, str]] = None
 
 class ScholarshipApplicationResponse(BaseModel):
     id: str
@@ -191,6 +195,7 @@ class ScholarshipApplicationResponse(BaseModel):
     student_id: str
     status: str
     applied_at: str
+    documents: Optional[Dict[str, str]] = None
 
     class Config:
         orm_mode = True

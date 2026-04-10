@@ -257,8 +257,8 @@ export default function DonorDashboard() {
                 Securing your donation on the blockchain ledger. 
                 This usually takes less than 7 seconds on the testnet.
               </p>
-              <div className={styles.progressContainer}>
-                <div className={styles.progressBar}></div>
+              <div className={styles.donationBarContainer}>
+                <div className={styles.donationBarFill}></div>
               </div>
             </div>
           </div>
@@ -345,13 +345,12 @@ export default function DonorDashboard() {
                           <span className={styles.progressLabel}>Blockchain Verified Disbursement</span>
                           <span className={`${styles.progressPercent} ${statusClass}`}>{Math.round(percent)}%</span>
                         </div>
-                        <div className={styles.progressBarWrapper}>
+                        <div className={styles.impactBarContainer}>
                           <div 
-                            className={`${styles.progressBar}`}
+                            className={styles.impactBarFill}
                             style={{ 
                               width: `${percent}%`,
-                              backgroundColor: percent === 0 ? '#ef4444' : (percent < 100 ? '#f59e0b' : '#22c55e'),
-                              boxShadow: `0 0 10px ${percent === 0 ? 'rgba(239, 68, 68, 0.3)' : (percent < 100 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(34, 197, 94, 0.3)')}`
+                              backgroundColor: percent === 0 ? '#ef4444' : (percent < 100 ? '#f59e0b' : '#22c55e')
                             }}
                           ></div>
                         </div>

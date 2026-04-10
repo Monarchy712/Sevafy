@@ -24,6 +24,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login") # Pointing to the specific endpoint
 
 def verify_password(plain_password, hashed_password):
+    if not hashed_password:
+        return False
     # Native bcrypt check to avoid passlib bug-detection crashes
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
