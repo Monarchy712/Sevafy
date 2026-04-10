@@ -1,0 +1,51 @@
+SEVAFY: DEFINITIVE TECH STACK SUMMARY
+========================================
+
+    1. MACHINE LEARNING & PREDICTIVE ANALYTICS
+    ------------------------------------------
+    The intelligence layer of Sevafy is centered around an NGO Recommendation Engine that uses historical and real-time data to rank organizations based on projected social impact.
+
+    *   Algorithm: Extreme Gradient Boosting (XGBoost) Regressor [XGBRegressor].
+    *   Data Processing: Pandas and NumPy for feature engineering and dataset management.
+    *   Training Details:
+        - Estimators: 150 Decision Trees.
+        - Learning Rate: 0.08 (Eta).
+        - Max Depth: 5 levels per tree to balance bias and variance.
+        - Regularization: Subsample (0.8) and Colsample_bytree (0.8) to prevent overfitting.
+        - Tree Method: 'hist' (Histogram-based) for optimized training speed.
+    *   Feature Set:
+        - Funding Ratio: Real-time ratio of donations vs. scholarship requirements.
+        - Avg Student Income: Targeted financial need assessment based on student demographics.
+        - Disbursement Velocity: Calculation of the time taken from donation to verified student receipt.
+        - Application Backlog: Pressure index based on approved but unfunded scholarship applications.
+    *   Output: Predictive 'Impact Score' (0-100) used to rank NGOs for donors, ensuring maximum social ROI.
+
+
+2. WEB3 & BLOCKCHAIN INTEGRITY
+------------------------------
+Sevafy utilizes decentralized technologies to ensure financial accountability and absolute transparency in the donation pipeline.
+
+*   Core Library: Web3.py for asynchronous Ethereum blockchain interaction.
+*   Account Management: Eth-account for secure private key handling and transaction signing.
+*   Smart Contract Integration: 
+    - Automated Impact Auditing: Smart contracts enforce milestone-based fund release.
+    - Event Listening: Python-based event listeners monitor the blockchain in real-time to sync on-chain transactions with the application database.
+*   Transparency: Every donation and disbursement is cryptographically verified, creating an immutable audit trail for donors.
+
+
+3. FRONTEND & BACKEND INFRASTRUCTURE
+------------------------------------
+The platform is built for speed, scalability, and a premium "state-of-the-art" user experience.
+
+*   Frontend Architecture:
+    - Framework: React 19 (Component-based).
+    - Build Tool: Vite (Ultra-fast development and optimized production bundling).
+    - Styling & Animations: Vanilla CSS combined with Anime.js for smooth, high-fidelity micro-animations and "glassmorphic" transitions.
+    - Routing: React Router Dom v7 for client-side navigation.
+    - Auth: Integrated Google OAuth for seamless user boarding.
+*   Backend Infrastructure:
+    - Framework: FastAPI (Asynchronous Python framework for high-throughput concurrency).
+    - Database: Neon PostgreSQL (Scalable serverless relational database).
+    - ORM: SQLAlchemy for type-safe database interactions and migrations.
+    - Real-time Communication: WebSockets for live social feeds and impact metric synchronization.
+    - Security: JWT (JSON Web Tokens) via python-jose and bcrypt password hashing for session integrity.
