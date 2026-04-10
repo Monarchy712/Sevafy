@@ -27,7 +27,10 @@ export default function StudentRegister() {
         if (result.require_role) {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
-          navigate('/student-dashboard');
+          const userRole = result.user?.role;
+          if (userRole === 'STUDENT') navigate('/student-dashboard');
+          else if (userRole === 'NGO_PERSONNEL') navigate('/ngo-dashboard');
+          else navigate('/dashboard');
         }
       } catch (err) {
         setError("Google Login failed. Please try again.");

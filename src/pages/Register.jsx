@@ -25,11 +25,10 @@ export default function Register() {
         if (result.require_role) {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
-          if (result.user?.role === 'STUDENT') {
-            navigate('/student-dashboard');
-          } else {
-            navigate('/dashboard');
-          }
+          const userRole = result.user?.role;
+          if (userRole === 'STUDENT') navigate('/student-dashboard');
+          else if (userRole === 'NGO_PERSONNEL') navigate('/ngo-dashboard');
+          else navigate('/dashboard');
         }
       } catch (err) {
         setError("Google Login failed. Please try again.");
@@ -50,11 +49,9 @@ export default function Register() {
     setIsLoading(true);
     try {
       await register(formData);
-      if (formData.role === 'STUDENT') {
-        navigate('/student-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      if (formData.role === 'STUDENT') navigate('/student-dashboard');
+      else if (formData.role === 'NGO_PERSONNEL') navigate('/ngo-dashboard');
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed.');
     } finally {

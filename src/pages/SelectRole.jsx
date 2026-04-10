@@ -37,6 +37,8 @@ export default function SelectRole() {
       });
       if (role === 'STUDENT') {
         navigate('/student-dashboard');
+      } else if (role === 'NGO_PERSONNEL') {
+        navigate('/ngo-dashboard');
       } else {
         navigate('/dashboard');
       }

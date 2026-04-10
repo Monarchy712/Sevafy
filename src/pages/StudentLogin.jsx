@@ -21,12 +21,10 @@ export default function StudentLogin() {
         if (result.require_role) {
           navigate('/select-role', { state: { profile: result.profile } });
         } else {
-          const user = result.user;
-          if (user?.role === 'STUDENT') {
-            navigate('/student-dashboard');
-          } else {
-            navigate('/dashboard');
-          }
+          const userRole = result.user?.role;
+          if (userRole === 'STUDENT') navigate('/student-dashboard');
+          else if (userRole === 'NGO_PERSONNEL') navigate('/ngo-dashboard');
+          else navigate('/dashboard');
         }
       } catch (err) {
         setError("Google Login failed. Please try again.");
@@ -43,11 +41,9 @@ export default function StudentLogin() {
     setIsLoading(true);
     try {
       const userData = await login(email, password);
-      if (userData?.role === 'STUDENT') {
-        navigate('/student-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      if (userData?.role === 'STUDENT') navigate('/student-dashboard');
+      else if (userData?.role === 'NGO_PERSONNEL') navigate('/ngo-dashboard');
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Please try again.');
     } finally {
