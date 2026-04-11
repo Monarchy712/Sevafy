@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from . import schemas, models
 from .database import get_db
 
-# Load .env explicitly so this works regardless of the terminal's working directory
+# .env file load karo taaki key mil sake
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'), override=True)
 
 # Use secrets from environment
@@ -21,9 +21,11 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login") # Pointing to the specific endpoint
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def verify_password(plain_password, hashed_password):
+    # Password match check karne ke liye bcrypt use karo
     if not hashed_password:
         return False
     # Native bcrypt check to avoid passlib bug-detection crashes

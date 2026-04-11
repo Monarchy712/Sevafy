@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app import models, auth, blockchain
 from app.database import get_db
 
-# ── Response Schemas (isolated, no pollution of schemas.py) ──────
+# Frontend ko data bhejne wale schemas
 
 class NGOStatsResponse(BaseModel):
     ngo_id: str
@@ -67,7 +67,7 @@ class SuccessResponse(BaseModel):
     message: str
     tx_hash: Optional[str] = None
 
-# ── Phase Name Map (mirrors InstallmentPhase enum) ────────────────
+# Installment phases ke naam ka map
 PHASE_NAMES = {
     0:  "New Admission",
     1:  "Mid-Term Installment",
@@ -83,7 +83,7 @@ PHASE_NAMES = {
     11: "Special Category Support",
 }
 
-# ── Impact Rating Algorithm ────────────────────────────────────────
+# NGO ka impact score calculate karne ka logic
 def calculate_impact_rating(
     net_funding: float,
     total_disbursed: float,
@@ -141,18 +141,12 @@ def calculate_impact_rating(
     return final_score, label
 
 
-# ── Router Definition ─────────────────────────────────────────────
-# NOTE: This is mounted at /api/ngo in the integration step.
-# See registry_handoff.md → Step 1.
-
+# NGO portal ke saari routes yahan hain
 router = APIRouter(prefix="/ngo", tags=["NGO Portal"])
 
 
 def _get_ngo_for_user(current_user, db):
-    """
-    Look up the NGO linked to this NGO_PERSONNEL user via the ngo_personnel table.
-    Raises 403 if user is not NGO_PERSONNEL, 404 if not linked to any NGO.
-    """
+    # Check karo ki ye user sahi NGO personnel hai ya nahi
     from app import models  # Imported here to keep the file self-contained
 
     if current_user.role.value != "NGO_PERSONNEL":
@@ -255,10 +249,7 @@ def get_incoming_donations(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Returns paginated list of donations received by this NGO.
-    Integration: wire in Depends(auth.get_current_user) and Depends(get_db).
-    """
+    # NGO ko kitni donations mili unki list
     from app import models, blockchain
     def format_ts(ts):
         from datetime import datetime
@@ -294,10 +285,7 @@ def get_ongoing_scholarships(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Returns all scholarship applications linked to this NGO's schemes.
-    Integration: wire in Depends(auth.get_current_user) and Depends(get_db).
-    """
+    # NGO ke under jitni bhi pending scholarships hain
     from app import models, blockchain
     def format_ts(ts):
         from datetime import datetime
@@ -428,7 +416,7 @@ def approve_scholarship(
     
     scholarship_amount = int(scheme.amount_per_student)
     
-    # ── Auto-detect purpose from scholarship text ──
+    # Scheme ke description se automatically purpose pehchano
     text = ((scheme.title or "") + " " + (scheme.description or "") + " " + (scheme.scheme_beneficiary or "")).lower()
     
     if any(kw in text for kw in ["device", "laptop", "tablet", "tech", "computer"]):
@@ -449,10 +437,7 @@ def approve_scholarship(
         purpose = 6   # EMERGENCY_SUPPORT
     elif any(kw in text for kw in ["special", "minority", "differently abled", "tribal"]):
         purpose = 11  # SPECIAL_CATEGORY_SUPPORT
-    else:
-        purpose = 0   # NEW_ADMISSION (default)
-    
-    # ── Find donations with remaining funds (split-aware) ──
+    # Donation split logic: ek se zyada donation use karke fund poora karo
     donations = db.query(models.Donation).filter(
         models.Donation.ngo_id == ngo.id,
         models.Donation.confirmed == True,
@@ -480,8 +465,7 @@ def approve_scholarship(
         raise HTTPException(status_code=404, detail="Student user not found")
     
     student_uid = student_user.blockchain_uid
-    
-    # ── Distribute across donations (split if needed) ──
+    # Blockchain call loop: har chunk ko on-chain transfer karo
     remaining_to_fund = scholarship_amount
     tx_hashes = []
     

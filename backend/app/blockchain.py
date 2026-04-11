@@ -1,14 +1,3 @@
-"""
-Sevafy Blockchain Service Layer
-================================
-All blockchain interaction goes through this module.
-- Write functions: signed by the backend wallet (onlyOwner)
-- Read functions: call contract view functions
-- Event parsing from transaction receipts
-
-The private key NEVER leaves this module.
-"""
-
 import os
 import json
 import logging
@@ -19,17 +8,13 @@ from web3.middleware import geth_poa_middleware
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Configuration (from environment variables — NEVER hardcoded)
-# ---------------------------------------------------------------------------
+# Env variables uthao, hardcode mat karna bhai
 
 _RPC_URL: str = os.environ.get("BLOCKCHAIN_RPC_URL", "")
 _CONTRACT_ADDRESS: str = os.environ.get("CONTRACT_ADDRESS", "")
 _WALLET_PRIVATE_KEY: str = os.environ.get("WALLET_PRIVATE_KEY", "")
 
-# ---------------------------------------------------------------------------
-# Web3 + Contract initialisation (lazy singleton)
-# ---------------------------------------------------------------------------
+# Singleton patterns: ek baar banao aur reuse karo
 
 _w3: Optional[Web3] = None
 _contract = None
@@ -82,16 +67,10 @@ def _get_account():
     return _account
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
 
 
 def _send_transaction(fn) -> Dict[str, Any]:
-    """
-    Build, sign, and send a contract write call.
-    Returns the full transaction receipt + parsed logs.
-    """
+    # Transaction build, sign aur send karne ka main function
     w3 = _get_web3()
     account = _get_account()
 
@@ -134,17 +113,10 @@ def _parse_event_from_receipt(receipt, event_name: str) -> Optional[Dict]:
     return None
 
 
-# ---------------------------------------------------------------------------
-# WRITE FUNCTIONS (onlyOwner — backend wallet signs)
-# ---------------------------------------------------------------------------
+# Contract mein data change karne wale functions - isme gas lagegi
 
 
 def call_donor_payment(donor_uid: int, ngo_uid: int, amount: int) -> Dict[str, Any]:
-    """
-    Record a donation on-chain.
-    Calls: donorPaymentCall(donorUID, ngoUID, amount)
-    Returns: { tx_hash, donation_id, receipt }
-    """
     contract = _get_contract()
     fn = contract.functions.donorPaymentCall(donor_uid, ngo_uid, amount)
     receipt = _send_transaction(fn)
@@ -167,12 +139,6 @@ def call_fund_transfer(
     amount: int,
     purpose: int,
 ) -> Dict[str, Any]:
-    """
-    Record an NGO → Student fund transfer on-chain.
-    Calls: fundTransfer(donationId, ngoUID, studentUID, amount, purpose)
-    Emits both fApprovalEvent and ngoPaymentEvent internally.
-    Returns: { tx_hash, receipt }
-    """
     contract = _get_contract()
     fn = contract.functions.fundTransfer(
         donation_id, ngo_uid, student_uid, amount, purpose
@@ -211,9 +177,7 @@ def call_record_verification(
     }
 
 
-# ---------------------------------------------------------------------------
-# READ FUNCTIONS (view — no gas, no signing)
-# ---------------------------------------------------------------------------
+# Sirf data dekhne ke liye - gas nahi lagegi
 
 
 def get_remaining_funds(donation_id: int) -> int:

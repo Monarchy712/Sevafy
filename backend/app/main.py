@@ -18,17 +18,17 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from .ml_service import get_top_ngos
 
-# Blockchain + real-time imports
+# Blockchain aur websocket ke liye zaroori imports
 from . import blockchain
 from .genai_verifier import verify_student_documents
 from .websocket_manager import ws_manager
 from .event_listener import start_event_listener
 from .ngo_router import router as ngo_router
 
-# Google Client ID from environment
+# Google OAuth ke liye Client ID uthao
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
-# Create all database tables based on our models
+# Database tables banao agar nahi hai toh
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Sevafy API")
@@ -50,7 +50,7 @@ app.include_router(ngo_router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
-    """Start the blockchain event listener as a background task."""
+    # Blockchain listener ko background mein chalao simulation mode ke liye
     try:
         # asyncio.create_task(start_event_listener(SessionLocal, ws_manager))
         import logging
@@ -60,9 +60,6 @@ async def startup_event():
         logging.getLogger(__name__).warning("Event listener failed to start: %s", e)
 
 
-# ══════════════════════════════════════════════════════════
-# AUTH ENDPOINTS (unchanged)
-# ══════════════════════════════════════════════════════════
 
 
 # We'll replace this with static file serving at the bottom for better catch-all handling.
@@ -88,7 +85,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    # Initialize associated profile depending on the role
+    # User add hogaya, ab role ke hisab se profile banao
     if user.role == models.UserRole.STUDENT:
         new_profile = models.StudentProfile(user_id=new_user.id)
         db.add(new_profile)
@@ -125,6 +122,7 @@ def login_for_access_token(user_credentials: schemas.UserLogin, db: Session = De
 
 @app.post("/api/auth/google")
 def google_auth(request: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
+    # Google token verify karo, fir check karo user exist karta hai ya nahi
     try:
         id_info = id_token.verify_oauth2_token(request.credential, requests.Request(), GOOGLE_CLIENT_ID)
 
@@ -239,9 +237,6 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     )
 
 
-# ══════════════════════════════════════════════════════════
-# NGO & RECOMMENDATION ENDPOINTS
-# ══════════════════════════════════════════════════════════
 
 
 @app.get("/api/ngos/recommendations", response_model=List[schemas.NGORecommendation])
@@ -293,9 +288,6 @@ def list_ngos(db: Session = Depends(get_db)):
     ]
 
 
-# ══════════════════════════════════════════════════════════
-# DONATION ENDPOINT (with blockchain integration)
-# ══════════════════════════════════════════════════════════
 
 
 @app.post("/api/donate", response_model=schemas.DonateResponse)
@@ -319,7 +311,7 @@ def donate(
     if not ngo:
         raise HTTPException(status_code=404, detail="NGO not found")
 
-    # Amount as integer (contract uses uint) -> Keeping as float for simulation
+    # Donation amount uint mein convert karke contract call karo
     from app import blockchain
     try:
         bc_res = blockchain.call_donor_payment(
@@ -393,11 +385,7 @@ def approve_student(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    NGO personnel approves a student application.
-    This ONLY updates the DB — it does NOT trigger any blockchain call.
-    Fund transfer only happens after GenAI verification via /api/student/verify-and-transfer.
-    """
+    # Sirf DB update karo, blockchain call transfer endpoint pe hoga
     if current_user.role != models.UserRole.NGO_PERSONNEL:
         raise HTTPException(status_code=403, detail="Only NGO personnel can approve students")
 
@@ -422,10 +410,6 @@ def approve_student(
         new_status=application.status.value,
     )
 
-
-# ══════════════════════════════════════════════════════════
-# GENAI VERIFICATION + FUND TRANSFER (the critical gate)
-# ══════════════════════════════════════════════════════════
 
 
 @app.post("/api/student/verify-and-transfer", response_model=schemas.FundTransferResponse)
@@ -481,6 +465,7 @@ def verify_and_transfer(
         documents=request.documents,
     )
 
+    # GenAI ka result save karo aur DB check karo
     application.verified_by_genai = verification.valid
     application.genai_result = {
         "valid": verification.valid,
@@ -498,7 +483,7 @@ def verify_and_transfer(
             verification_result=application.genai_result,
         )
 
-    # Deduct remaining amount
+    # Fund transfer ho raha hai, toh balance update karna padega
     donation.remaining_amount = float(donation.remaining_amount) - request.amount
     
     # Create Transfer Record
@@ -523,14 +508,10 @@ def verify_and_transfer(
     )
 
 
-# ══════════════════════════════════════════════════════════
-# BLOCKCHAIN VIEW ENDPOINTS
-# ══════════════════════════════════════════════════════════
-
 
 @app.get("/api/debug/db-state")
 def get_db_state(db: Session = Depends(get_db)):
-    """Returns a dump of key tables for debugging purposes."""
+    # Saari tables ka state ek saath dekhne ke liye (DEBUG ONLY)
     users = db.query(models.User).all()
     ngos = db.query(models.NGO).all()
     donations = db.query(models.Donation).all()
@@ -564,7 +545,7 @@ def get_my_transactions(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all transactions for the current user from the Database."""
+    # User ke hisab se saari history nikaalo (Donor/NGO/Student)
     transactions: List[schemas.TransactionRecord] = []
 
     if current_user.role == models.UserRole.DONATOR:
@@ -609,9 +590,7 @@ def get_my_transactions(
 
 @app.get("/api/transactions/ledger", response_model=schemas.LedgerResponse)
 def get_ledger(db: Session = Depends(get_db)):
-    """
-    Returns last 50 transactions (merged donor + NGO) from DB.
-    """
+    # Poora ledger merge karke frontend ko bhejo
     donations = db.query(models.Donation).all()
     transfers = db.query(models.FundTransferRecord).all()
     
@@ -740,10 +719,6 @@ def apply_for_scholarship(
     )
 
 
-# ══════════════════════════════════════════════════════════
-# WEBSOCKET ENDPOINTS (real-time updates)
-# ══════════════════════════════════════════════════════════
-
 
 @app.websocket("/ws/ledger")
 async def websocket_ledger(websocket: WebSocket):
@@ -779,14 +754,9 @@ async def websocket_donor(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket, channel)
 
-# ══════════════════════════════════════════════════════════
-# BLOCKCHAIN NATIVE VIEWS
-# ══════════════════════════════════════════════════════════
 
 from app import blockchain
 
-# Mandatory role mapping: DB role enum → smart contract clientType
-# The contract expects "DONOR", "NGO", "STUDENT" — NOT the DB enum values
 ROLE_TO_CLIENT_TYPE = {
     "DONATOR": "DONOR",
     "NGO_PERSONNEL": "NGO",
@@ -880,11 +850,8 @@ def get_blockchain_ledger():
         print(f"Blockchain ledger fetch error: {e}")
         traceback.print_exc()
         return {"transactions": [], "count": 0}
-# ══════════════════════════════════════════════════════════
-# SERVE FRONTEND (Production)
-# ══════════════════════════════════════════════════════════
 
-# In production, the 'dist' folder (built frontend) will be in the same directory as 'app'
+# Production mein built frontend files serve karne ka jugaad
 dist_path = os.path.join(os.path.dirname(__file__), "..", "dist")
 
 @app.get("/{full_path:path}")

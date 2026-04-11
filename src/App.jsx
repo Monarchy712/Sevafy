@@ -24,9 +24,6 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-
 
 import './App.css';
 
-/**
- * NavBar — floating glass navigation bar with SEVAFY brand and auth buttons.
- */
 function NavBar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -34,7 +31,6 @@ function NavBar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        {/* Left: Brand */}
         <Link to="/" className="navbar-brand">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
             <circle cx="16" cy="16" r="14" stroke="var(--color-accent)" strokeWidth="2" />
@@ -44,7 +40,6 @@ function NavBar() {
           <span>SEVAFY</span>
         </Link>
 
-        {/* Center: Main Navigation */}
         <div className="navbar-center">
           {user?.role !== 'STUDENT' && (
             <NavLink to="/recommendations" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>AI Match</NavLink>
@@ -62,7 +57,6 @@ function NavBar() {
           <NavLink to="/ledger" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>Ledger</NavLink>
         </div>
 
-        {/* Right: Auth/Greeting */}
         <div className="navbar-auth">
           {user ? (
             <>
@@ -90,9 +84,6 @@ function NavBar() {
   );
 }
 
-/**
- * LandingPage — the main marketing page.
- */
 function LandingPage() {
   return (
     <>
@@ -107,9 +98,6 @@ function LandingPage() {
   );
 }
 
-/**
- * AppContent — handles conditional NavBar based on AuthContext.
- */
 function AppContent() {
   const { user } = useContext(AuthContext);
   const location = useLocation();
@@ -118,7 +106,7 @@ function AppContent() {
   return (
     <>
       <BackgroundEffect />
-      {/* Hide global NavBar on student-specific routes */}
+      {/* Agar student login hai toh alag navbar dikhao ya mat dikhao */}
       {!isStudentPath && user?.role !== 'STUDENT' && <NavBar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -138,9 +126,6 @@ function AppContent() {
   );
 }
 
-/**
- * App — root component.
- */
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

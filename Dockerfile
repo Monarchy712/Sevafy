@@ -1,14 +1,14 @@
-# Stage 1: Build the React Frontend
-FROM node:18-alpine AS build-stage
+# Pehle frontend build karo (Stage 1)
+FROM node:22-alpine AS build-stage
 WORKDIR /app
-# Copy package files and install dependencies
+# Package files copy karke install phero
 COPY package*.json ./
 RUN npm install
-# Copy the rest of the frontend source and build
+# Baaki saara saaman copy karo aur build maro
 COPY . .
 RUN npm run build
 
-# Stage 2: Run the FastAPI Backend
+# Ab backend ki baari (Stage 2)
 FROM python:3.11-slim
 WORKDIR /app/backend
 # Install system dependencies if any are needed for Python packages
@@ -23,9 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the backend source
 COPY backend/ .
 
-# Copy the compiled frontend files from the build-stage
-# In main.py, we set dist_path = os.path.join(os.path.dirname(__file__), "..", "dist")
-# Since main.py is in /app/backend/app/main.py, ".." is /app/backend/dist
+# Compiled frontend files backend folder ke 'dist' mein daal do
+# main.py expects it at /app/backend/dist
 COPY --from=build-stage /app/dist ./dist
 
 # Expose the port FastAPI runs on
