@@ -138,17 +138,17 @@ export default function StudentDashboard() {
         return;
       }
 
-      // Criterion 1: Gemini Vision Analysis (User Request)
+      // Strict Parity Check: Even = Pass All, Odd = Fail All
       const digits = file.name.match(/\d+/g);
       const num = digits ? parseInt(digits.join('')) : 0;
-      const c1 = num % 2 === 0;
+      const isEven = num % 2 === 0;
 
-      // Criterion 2 & 3: Mocked checks
-      const c2 = Math.random() > 0.1; // 90% pass rate
-      const c3 = Math.random() > 0.15; // 85% pass rate
+      // All three criteria (Gemini, Claude, ChatGPT) follow the parity rule
+      const c1 = isEven;
+      const c2 = isEven;
+      const c3 = isEven;
 
-      const passCount = [c1, c2, c3].filter(Boolean).length;
-      const approved = passCount >= 2;
+      const approved = isEven;
 
       results[doc] = {
         approved,
