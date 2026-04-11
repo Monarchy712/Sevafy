@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -63,9 +65,10 @@ async def startup_event():
 # ══════════════════════════════════════════════════════════
 
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Sevafy API"}
+# We'll replace this with static file serving at the bottom for better catch-all handling.
+# @app.get("/")
+# def read_root():
+#     return {"message": "Welcome to Sevafy API"}
 
 
 @app.post("/api/auth/register", response_model=schemas.UserResponse)
@@ -877,3 +880,29 @@ def get_blockchain_ledger():
         print(f"Blockchain ledger fetch error: {e}")
         traceback.print_exc()
         return {"transactions": [], "count": 0}
+# ══════════════════════════════════════════════════════════
+# SERVE FRONTEND (Production)
+# ══════════════════════════════════════════════════════════
+
+# In production, the 'dist' folder (built frontend) will be in the same directory as 'app'
+dist_path = os.path.join(os.path.dirname(__file__), "..", "dist")
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    # Skip if it starts with api or ws (already handled by routers/websocket)
+    if full_path.startswith("api") or full_path.startswith("ws"):
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # Path to the requested file in dist
+    file_path = os.path.join(dist_path, full_path)
+    
+    # If it's a file that exists, serve it
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Otherwise, serve index.html for client-side routing (React Router)
+    index_path = os.path.join(dist_path, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    
+    return {"message": "Frontend not built yet. Run 'npm run build'."}

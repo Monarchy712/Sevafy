@@ -1,0 +1,12 @@
+node_modules
+dist
+backend/__pycache__
+backend/.env
+backend/*.db
+.git
+.gitignore
+Dockerfile
+railway_deployment_guide.md
+implementation_plan.md
+task.md
+walkthrough.md
