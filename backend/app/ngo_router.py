@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 import uuid as uuid_module
+import random
 from pydantic import BaseModel
 from app import models, auth, blockchain
 from app.database import get_db
@@ -418,6 +419,9 @@ def approve_scholarship(
     
     # Scheme ke description se automatically purpose pehchano
     text = ((scheme.title or "") + " " + (scheme.description or "") + " " + (scheme.scheme_beneficiary or "")).lower()
+    
+    # Default purpose if no keywords match (random selection from common phases per user request)
+    purpose = random.choice([0, 1, 4, 11]) 
     
     if any(kw in text for kw in ["device", "laptop", "tablet", "tech", "computer"]):
         purpose = 9   # DEVICE_OR_TECH_SUPPORT
