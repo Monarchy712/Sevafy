@@ -199,7 +199,11 @@ export default function TransparentLedger() {
               {transactions.map((tx, idx) => (
                 <tr key={idx}>
                   <td>#{tx.donation_id}</td>
-                  <td>{ngos.find(n => n.blockchain_uid === tx.sender_uid)?.name || tx.sender_uid}</td>
+                  <td>
+                    {tx.tx_type === 'NGO_TO_STUDENT'
+                      ? (ngos.find(n => n.blockchain_uid === tx.sender_uid)?.name || tx.sender_uid)
+                      : tx.sender_uid}
+                  </td>
                   <td>
                     {ngos.find(n => n.blockchain_uid === tx.receiver_uid)?.name || tx.receiver_uid}
                   </td>
@@ -290,7 +294,9 @@ export default function TransparentLedger() {
               >
                 <td className={styles.donationId}>#{tx.donation_id}</td>
                 <td className={styles.uidCell}>
-                  {ngos.find(n => n.blockchain_uid === tx.sender_uid)?.name || tx.sender_uid}
+                  {tx.tx_type === 'NGO_TO_STUDENT'
+                    ? (ngos.find(n => n.blockchain_uid === tx.sender_uid)?.name || tx.sender_uid)
+                    : tx.sender_uid}
                 </td>
                 <td className={styles.uidCell}>
                   {ngos.find(n => n.blockchain_uid === tx.receiver_uid)?.name || tx.receiver_uid}
