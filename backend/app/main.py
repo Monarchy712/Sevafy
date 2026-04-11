@@ -374,6 +374,20 @@ def donor_status(
     )
 
 
+@app.get("/api/simulate-scan/{ngo_id}/{amount}/{user_id}")
+async def simulate_scan(ngo_id: str, amount: float, user_id: str):
+    """
+    Simulates a phone scanning the donation QR code.
+    Sends a message to the desktop client via WebSocket to trigger auto-completion.
+    """
+    await ws_manager.broadcast_to_donor(user_id, {
+        "type": "payment_scanned",
+        "ngo_id": ngo_id,
+        "amount": amount
+    })
+    return {"status": "success", "message": "Payment signal sent to desktop dashboard"}
+
+
 # ══════════════════════════════════════════════════════════
 # NGO APPROVAL ENDPOINT (DB only — NO blockchain)
 # ══════════════════════════════════════════════════════════

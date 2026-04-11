@@ -19,6 +19,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import StudentLogin from './pages/StudentLogin';
 import StudentRegister from './pages/StudentRegister';
 import NGODashboard from './pages/NGODashboard';
+import SimulatePayment from './pages/SimulatePayment';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "165731890815-08kfmug9japuoeivel432un7rkg05n7f.apps.googleusercontent.com";
 
@@ -121,6 +122,7 @@ function AppContent() {
         <Route path="/student-ledger" element={<TransparentLedger />} />
         <Route path="/ledger" element={<TransparentLedger />} />
         <Route path="/ngo-dashboard" element={<NGODashboard />} />
+        <Route path="/simulate-payment/:ngoId/:amount/:userId" element={<SimulatePayment />} />
       </Routes>
     </>
   );

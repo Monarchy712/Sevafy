@@ -56,6 +56,7 @@ export default function DonorDashboard() {
   // QR Modal States
   const [showQRModal, setShowQRModal] = useState(false);
   const [pendingDonation, setPendingDonation] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('upi'); // 'upi' | 'card' | 'bank'
 
   // WebSocket for real-time updates
   const wsRef = useRef(null);
@@ -66,6 +67,9 @@ export default function DonorDashboard() {
   const [isRecording, setIsRecording] = useState(false);
   const [trackingResult, setTrackingResult] = useState(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
+
+  // Ref to store the latest confirmPayment function for the WebSocket listener
+  const confirmPaymentRef = useRef(null);
 
   const handleTrackDonation = async (donationId, totalAmount) => {
     setTrackingLoading(true);
@@ -134,6 +138,9 @@ export default function DonorDashboard() {
           if (payload.type === 'new_transaction') {
             // Refetch from blockchain for accurate data
             fetchBlockchainData();
+          } else if (payload.type === 'payment_scanned') {
+            // Auto-confirm payment when signal received from phone
+            if (confirmPaymentRef.current) confirmPaymentRef.current();
           }
         } catch (e) {
           console.error('WS parse error:', e);
@@ -213,6 +220,11 @@ export default function DonorDashboard() {
       setPendingDonation(null);
     }
   };
+
+  // Keep the ref updated with the latest confirmPayment function
+  useEffect(() => {
+    confirmPaymentRef.current = confirmPayment;
+  }, [confirmPayment]);
 
   const selectAmount = (ngoId, amount) => {
     setSelectedAmounts(prev => ({
@@ -589,20 +601,99 @@ export default function DonorDashboard() {
       {showQRModal && pendingDonation && (
         <div className={styles.qrOverlay}>
           <div className={styles.qrCard}>
-            <button className={styles.qrClose} onClick={() => setShowQRModal(false)}>&times;</button>
-            <div className={styles.qrHeader}>
-              <h3>Scan to Pay</h3>
-              <p>UPI / Digital Wallet</p>
-            </div>
+            <button className={styles.qrClose} onClick={() => { setShowQRModal(false); setPaymentMethod('upi'); }}>&times;</button>
             
-            <div className={styles.qrWrapper}>
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=sevafy@bank%26pn=Sevafy%26am=${pendingDonation.amount}%26cu=INR`}
-                alt="Payment QR Code"
-                className={styles.qrImage}
-              />
-              <div className={styles.qrScanLine}></div>
+            <div className={styles.methodTabs}>
+              <button 
+                className={`${styles.methodTab} ${paymentMethod === 'upi' ? styles.methodTabActive : ''}`}
+                onClick={() => setPaymentMethod('upi')}
+              >
+                UPI / GPay
+              </button>
+              <button 
+                className={`${styles.methodTab} ${paymentMethod === 'card' ? styles.methodTabActive : ''}`}
+                onClick={() => setPaymentMethod('card')}
+              >
+                Card
+              </button>
+              <button 
+                className={`${styles.methodTab} ${paymentMethod === 'bank' ? styles.methodTabActive : ''}`}
+                onClick={() => setPaymentMethod('bank')}
+              >
+                Bank
+              </button>
             </div>
+
+            {paymentMethod === 'upi' && (
+              <>
+                <div className={styles.qrHeader}>
+                  <h3>Scan to Pay</h3>
+                  <p>UPI / Google Pay / PhonePe</p>
+                </div>
+                
+                <div className={styles.qrWrapper}>
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + "/simulate-payment/" + pendingDonation.ngoId + "/" + pendingDonation.amount + "/" + user.id)}`}
+                    alt="Payment QR Code"
+                    className={styles.qrImage}
+                  />
+                  <div className={styles.qrScanLine}></div>
+                </div>
+              </>
+            )}
+
+            {paymentMethod === 'card' && (
+              <div className={styles.cardFormMockup}>
+                <div className={styles.qrHeader}>
+                  <h3>Debit / Credit Card</h3>
+                  <p>Secure Card Payment</p>
+                </div>
+                <div className={styles.mockInputGroup}>
+                  <label>Card Number</label>
+                  <div className={styles.mockInput}>••••  ••••  ••••  4242</div>
+                </div>
+                <div className={styles.mockInputRow}>
+                  <div className={styles.mockInputGroup}>
+                    <label>Expiry</label>
+                    <div className={styles.mockInput}>MM / YY</div>
+                  </div>
+                  <div className={styles.mockInputGroup}>
+                    <label>CVV</label>
+                    <div className={styles.mockInput}>•••</div>
+                  </div>
+                </div>
+                <div className={styles.cardLogos}>
+                  <span>VISA</span>
+                  <span>Mastercard</span>
+                  <span>Rupay</span>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === 'bank' && (
+              <div className={styles.bankDetailsBox}>
+                <div className={styles.qrHeader}>
+                  <h3>Bank Transfer</h3>
+                  <p>NEFT / IMPS / RTGS</p>
+                </div>
+                <div className={styles.bankDetailItem}>
+                  <span className={styles.bankDetailLabel}>A/C Name</span>
+                  <span className={styles.bankDetailValue}>SEVAFY FOUNDATION</span>
+                </div>
+                <div className={styles.bankDetailItem}>
+                  <span className={styles.bankDetailLabel}>Account No</span>
+                  <span className={styles.bankDetailValue}>919209301234</span>
+                </div>
+                <div className={styles.bankDetailItem}>
+                  <span className={styles.bankDetailLabel}>IFSC Code</span>
+                  <span className={styles.bankDetailValue}>SEVA0001234</span>
+                </div>
+                <div className={styles.bankDetailItem}>
+                  <span className={styles.bankDetailLabel}>Bank</span>
+                  <span className={styles.bankDetailValue}>Digital Impact Bank, Mumbai</span>
+                </div>
+              </div>
+            )}
 
             <div className={styles.qrInfo}>
               <div className={styles.qrAmount}>₹{pendingDonation.amount.toLocaleString('en-IN')}</div>
@@ -616,7 +707,7 @@ export default function DonorDashboard() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M20 6L9 17L4 12"/>
               </svg>
-              Simulate Payment Scan
+              {paymentMethod === 'upi' ? 'Simulate Payment Scan' : 'Confirm & Secure Donation'}
             </button>
             <p className={styles.qrNote}>Funds will be recorded on the blockchain immediately after scanning.</p>
           </div>
