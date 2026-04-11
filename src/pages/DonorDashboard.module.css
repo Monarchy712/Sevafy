@@ -1046,3 +1046,143 @@
   color: var(--color-muted);
   text-transform: uppercase;
 }
+
+/* ── QR Payment Modal Styles ────────────────── */
+
+.qrOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 36, 33, 0.6);
+  backdrop-filter: blur(12px);
+  z-index: 6000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.qrCard {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 3rem 2rem;
+  border-radius: 32px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
+  animation: modalScaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.qrClose {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 2rem;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.qrHeader h3 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.qrHeader p {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+}
+
+.qrWrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 2rem;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.qrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qrScanLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
+  animation: qrScanMove 2s linear infinite;
+}
+
+@keyframes qrScanMove {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.qrInfo {
+  margin-bottom: 2rem;
+}
+
+.qrAmount {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-fg);
+  margin-bottom: 0.5rem;
+}
+
+.qrMerchant {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+.simulateScanBtn {
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--color-fg);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.25rem;
+}
+
+.simulateScanBtn:hover {
+  background: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(210, 84, 59, 0.3);
+}
+
+.qrNote {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+  padding: 0 1rem;
+}

@@ -50,10 +50,12 @@ export default function DonorDashboard() {
   const [customAmounts, setCustomAmounts] = useState({});
   const [donatingTo, setDonatingTo] = useState(null);
 
-  // Blockchain data from getUIDPaymentData()
-  // Each record: { purpose, donation_id, sender_uid, receiver_uid, amount, timestamp, tx_type }
   const [blockchainTransactions, setBlockchainTransactions] = useState([]);
   const [lastTxResult, setLastTxResult] = useState(null);
+
+  // QR Modal States
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [pendingDonation, setPendingDonation] = useState(null);
 
   // WebSocket for real-time updates
   const wsRef = useRef(null);
@@ -151,10 +153,19 @@ export default function DonorDashboard() {
     };
   }, [user]);
 
-  const handleDonate = async (ngoId) => {
+  const handleDonate = (ngoId) => {
     const amount = selectedAmounts[ngoId] || Number(customAmounts[ngoId]);
     if (!amount || isNaN(amount) || amount <= 0) return;
 
+    setPendingDonation({ ngoId, amount });
+    setShowQRModal(true);
+  };
+
+  const confirmPayment = async () => {
+    if (!pendingDonation) return;
+    const { ngoId, amount } = pendingDonation;
+    
+    setShowQRModal(false);
     setDonatingTo(ngoId);
     setLastTxResult(null);
     setIsRecording(true);
@@ -199,6 +210,7 @@ export default function DonorDashboard() {
       console.error('Donation failed:', err);
     } finally {
       setDonatingTo(null);
+      setPendingDonation(null);
     }
   };
 
@@ -572,6 +584,44 @@ export default function DonorDashboard() {
           </div>
         ))}
       </div>
+
+      {/* ── QR Payment Modal ──────────────────────── */}
+      {showQRModal && pendingDonation && (
+        <div className={styles.qrOverlay}>
+          <div className={styles.qrCard}>
+            <button className={styles.qrClose} onClick={() => setShowQRModal(false)}>&times;</button>
+            <div className={styles.qrHeader}>
+              <h3>Scan to Pay</h3>
+              <p>UPI / Digital Wallet</p>
+            </div>
+            
+            <div className={styles.qrWrapper}>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=sevafy@bank%26pn=Sevafy%26am=${pendingDonation.amount}%26cu=INR`}
+                alt="Payment QR Code"
+                className={styles.qrImage}
+              />
+              <div className={styles.qrScanLine}></div>
+            </div>
+
+            <div className={styles.qrInfo}>
+              <div className={styles.qrAmount}>₹{pendingDonation.amount.toLocaleString('en-IN')}</div>
+              <div className={styles.qrMerchant}>To: SEVAFY FOUNDATION</div>
+            </div>
+
+            <button 
+              className={styles.simulateScanBtn}
+              onClick={confirmPayment}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M20 6L9 17L4 12"/>
+              </svg>
+              Simulate Payment Scan
+            </button>
+            <p className={styles.qrNote}>Funds will be recorded on the blockchain immediately after scanning.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
