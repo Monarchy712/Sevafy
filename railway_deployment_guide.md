@@ -28,7 +28,7 @@ Go to the **Variables** tab of your service in Railway and add the following var
 | `GENAI_API_KEY` | *Your GenAI API key* |
 
 > [!IMPORTANT]
-> Railway handles the `PORT` automatically. Our `Dockerfile` exposes `8000`, but Railway might map it differently. FastAPI will listen on `0.0.0.0:8000`, and Railway will route traffic to it.
+> Railway handles the `PORT` automatically. Our `Dockerfile` now exposes `8080` (Railway's default). Make sure you confirm `8080` in the **Networking** settings to generate your domain.
 
 ## Step 3: Deployment
 1. Once variables are added, Railway will trigger a new deployment.

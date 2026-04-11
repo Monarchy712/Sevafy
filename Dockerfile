@@ -28,7 +28,9 @@ COPY backend/ .
 COPY --from=build-stage /app/dist ./dist
 
 # Expose the port FastAPI runs on
-EXPOSE 8000
+EXPOSE 8080
+
+# Railway automatically handles PORT, exposing 8080 as default
 
 # Start the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
